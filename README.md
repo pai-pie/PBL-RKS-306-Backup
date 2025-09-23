@@ -1,0 +1,5 @@
+GuardianTix merupakan platform ticketing online yang dirancang untuk menyediakan layanan pemesanan tiket event secara digital. 
+Platform ini melayani dua jenis pengguna utama: pengguna umum yang dapat melakukan pencarian event, pembelian tiket, dan 
+manajemen pesanan, serta administrator yang mengelola konten event dan memantau seluruh transaksi sistem. Fitur inti platform 
+mencakup kemampuan manajemen event lengkap, sistem pencarian dan penelusuran event, proses registrasi dan autentikasi pengguna, 
+serta alur pembelian tiket yang terintegrasi dengan simulasi pembayaran.
