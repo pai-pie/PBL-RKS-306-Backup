@@ -17,67 +17,66 @@
   </style>
 </head>
 <body>
+
   <div class="container">
     <h1>🎉 Purchase Successful!</h1>
     <div class="details" id="ticketDetails"></div>
     <div class="code" id="bookingCode"></div>
     
     <div class="buttons">
-      <button onclick="downloadTicket()">Download E-Ticket</button>
-      <button class="back" onclick="goHome()">Back to Homepage</button>
+      <button onclick="ticket.download()">Download E-Ticket</button>
+      <button class="back" onclick="ticket.goHome()">Back to Homepage</button>
     </div>
   </div>
 
   <script>
-    // Ambil parameter dari URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const ticket = urlParams.get("ticket") || "Standard";
-    const method = urlParams.get("method") || "Unknown";
+    class Ticket {
+      constructor(ticketType, method){
+        this.ticketType = ticketType;
+        this.method = method;
+        this.bookingCode = this.generateCode();
+        this.showDetails();
+      }
 
-    // Generate kode booking unik
-    function generateCode() {
-      const now = new Date();
-      const datePart = now.getFullYear().toString().slice(-2) +
-                       (now.getMonth()+1).toString().padStart(2,"0") +
-                       now.getDate().toString().padStart(2,"0");
-      const randomPart = Math.random().toString(36).substring(2,6).toUpperCase();
-      return `GTX-${datePart}-${randomPart}`;
-    }
+      generateCode(){
+        const now = new Date();
+        const datePart = now.getFullYear().toString().slice(-2)+
+                         (now.getMonth()+1).toString().padStart(2,"0")+
+                         now.getDate().toString().padStart(2,"0");
+        const randomPart = Math.random().toString(36).substring(2,6).toUpperCase();
+        return `GTX-${datePart}-${randomPart}`;
+      }
 
-    const bookingCode = generateCode();
+      showDetails(){
+        document.getElementById("ticketDetails").innerHTML = 
+          `Ticket Type: <b>${this.ticketType}</b><br>Payment Method: <b>${this.method}</b>`;
+        document.getElementById("bookingCode").innerText = `Booking Code: ${this.bookingCode}`;
+      }
 
-    // Tampilkan detail
-    document.getElementById("ticketDetails").innerHTML = 
-      `Ticket Type: <b>${ticket}</b><br>Payment Method: <b>${method}</b>`;
-
-    document.getElementById("bookingCode").innerText = 
-      `Booking Code: ${bookingCode}`;
-
-    // Download e-ticket (simulasi .txt file)
-    function downloadTicket() {
-      const content = 
-`🎫 GuardianTix E-Ticket
+      download(){
+        const content = `🎫 GuardianTix E-Ticket
 ------------------------
-Booking Code: ${bookingCode}
-Ticket Type : ${ticket}
-Payment     : ${method}
+Booking Code: ${this.bookingCode}
+Ticket Type : ${this.ticketType}
+Payment     : ${this.method}
 
 Show this e-ticket at the venue.
 Enjoy the concert! 🎶`;
+        const blob = new Blob([content],{type:"text/plain"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = `E-Ticket-${this.bookingCode}.txt`; a.click();
+        URL.revokeObjectURL(url);
+      }
 
-      const blob = new Blob([content], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `E-Ticket-${bookingCode}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+      goHome(){ window.location.href = "homepage.html"; }
     }
 
-    // Kembali ke homepage
-    function goHome() {
-      window.location.href = "homepage.html";
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketType = urlParams.get("ticket") || "Standard";
+    const method = urlParams.get("method") || "Unknown";
+    const ticket = new Ticket(ticketType, method);
   </script>
+
 </body>
 </html>

@@ -25,59 +25,14 @@
       box-shadow: 0 8px 16px rgba(0,0,0,0.3);
     }
 
-    .register-container h1 {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: #f1c40f;
-    }
-
-    .register-container p {
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
-      color: #dcdcdc;
-    }
-
-    .register-container label {
-      display: block;
-      text-align: left;
-      margin-bottom: 0.25rem;
-      font-weight: bold;
-      color: #f1c40f;
-    }
-
-    .register-container input {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      border: none;
-      border-radius: 6px;
-      background: #1a1a2e;
-      color: #fff;
-    }
-
-    .register-container button {
-      width: 100%;
-      padding: 0.7rem;
-      background: #f1c40f;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .register-container button:hover {
-      background: #d4ac0d;
-    }
-
-    .login-link {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-    }
-
-    .login-link a {
-      color: #f1c40f;
-      text-decoration: none;
-    }
+    .register-container h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #f1c40f; }
+    .register-container p { font-size: 0.9rem; margin-bottom: 1.5rem; color: #dcdcdc; }
+    .register-container label { display: block; text-align: left; margin-bottom: 0.25rem; font-weight: bold; color: #f1c40f; }
+    .register-container input { width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: none; border-radius: 6px; background: #1a1a2e; color: #fff; }
+    .register-container button { width: 100%; padding: 0.7rem; background: #f1c40f; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .register-container button:hover { background: #d4ac0d; }
+    .login-link { margin-top: 1rem; font-size: 0.9rem; }
+    .login-link a { color: #f1c40f; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -85,7 +40,7 @@
     <h1>Create Account</h1>
     <p>Fill in the form to create your magical account</p>
 
-    <form>
+    <form id="registerForm">
       <label for="username">Username</label>
       <input type="text" id="username" placeholder="Enter your username" required>
 
@@ -105,5 +60,49 @@
       Already have an account? <a href="login.html">Sign in here</a>
     </div>
   </div>
+
+  <script>
+    // Class untuk user baru
+    class User {
+      constructor(username, email, password, confirmPassword) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.confirmPassword = confirmPassword;
+      }
+
+      validate() {
+        if(!this.username || !this.email || !this.password || !this.confirmPassword){
+          alert("Please fill all fields!");
+          return false;
+        }
+        if(this.password !== this.confirmPassword){
+          alert("Passwords do not match!");
+          return false;
+        }
+        return true;
+      }
+
+      register() {
+        if(this.validate()){
+          // Simulasi register sukses
+          alert(`Account for ${this.username} created successfully!`);
+          window.location.href = "login.html";
+        }
+      }
+    }
+
+    const form = document.getElementById("registerForm");
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirm").value;
+
+      const newUser = new User(username, email, password, confirmPassword);
+      newUser.register();
+    });
+  </script>
 </body>
 </html>
