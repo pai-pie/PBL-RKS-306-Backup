@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - GuardianTix</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f0f1c; color: white; text-align: center; margin: 0; }
+    .container { max-width: 500px; margin: 50px auto; background: #1c1c2b; padding: 20px; border-radius: 12px; box-shadow: 0 0 15px #f1c40f; }
+    h1 { color: #f1c40f; }
+    .ticket-info { margin: 20px 0; font-size: 18px; }
+    select, button { padding: 10px; margin: 15px 0; width: 100%; border-radius: 6px; font-size: 16px; }
+    select { background: #333; color: white; border: 1px solid #f1c40f; }
+    button { background: #f1c40f; color: black; border: none; cursor: pointer; font-weight: bold; }
+    .payment-details { margin-top: 20px; padding: 15px; background: #222; border-radius: 8px; display: none; }
+    img { max-width: 200px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Payment</h1>
+    <div class="ticket-info" id="ticketInfo"></div>
+
+    <label for="method">Choose Payment Method:</label>
+    <select id="method" onchange="showPaymentDetails()">
+      <option value="">-- Select Method --</option>
+      <option value="E-Wallet">E-Wallet</option>
+      <option value="Bank Transfer">Bank Transfer</option>
+    </select>
+
+    <div class="payment-details" id="paymentDetails"></div>
+
+    <button onclick="confirmPayment()">Confirm Payment</button>
+  </div>
+
+  <script>
+    // Ambil parameter tiket dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticket = urlParams.get("ticket") || "Standard";
+
+    // Data harga
+    const prices = {
+      "Standard": "Rp 450.000",
+      "Premium": "Rp 850.000",
+      "VIP": "Rp 1.250.000"
+    };
+
+    // Tampilkan info tiket
+    document.getElementById("ticketInfo").innerText = 
+      `Ticket: ${ticket} | Price: ${prices[ticket]}`;
+
+    // Tampilkan detail pembayaran
+    function showPaymentDetails() {
+      const method = document.getElementById("method").value;
+      const details = document.getElementById("paymentDetails");
+      details.style.display = "block";
+
+      if (method === "E-Wallet") {
+        details.innerHTML = `
+          <h3>E-Wallet Payment</h3>
+          <p>Scan this QR Code to pay:</p>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=GuardianTix-Payment" alt="QR Code">
+        `;
+      } else if (method === "Bank Transfer") {
+        details.innerHTML = `
+          <h3>Bank Transfer</h3>
+          <p>Bank: BCA</p>
+          <p>Account Number: 1234567890</p>
+          <p>Account Name: GuardianTix</p>
+        `;
+      } else {
+        details.style.display = "none";
+      }
+    }
+
+    // Konfirmasi pembayaran
+    function confirmPayment() {
+      const method = document.getElementById("method").value;
+      if (!method) {
+        alert("Please select a payment method!");
+        return;
+      }
+
+      // Redirect ke success.html dengan data tiket & metode pembayaran
+      window.location.href = `success.html?ticket=${ticket}&method=${method}`;
+    }
+  </script>
+</body>
+</html>
