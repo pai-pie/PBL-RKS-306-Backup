@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guardiantix Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #1a1a2e, #0f0f1c);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background: linear-gradient(to bottom, #4b3621, #2c1c0e);
+      padding: 2rem;
+      border-radius: 12px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+
+    .login-container h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #f1c40f;
+    }
+
+    .login-container p {
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      color: #dcdcdc;
+    }
+
+    .login-container label {
+      display: block;
+      text-align: left;
+      margin-bottom: 0.25rem;
+      font-weight: bold;
+      color: #f1c40f;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #1a1a2e;
+      color: #fff;
+    }
+
+    .login-container a button {
+      width: 100%;
+      padding: 0.7rem;
+      background: #f1c40f;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #000;
+    }
+
+    .login-container a button:hover {
+      background: #d4ac0d;
+    }
+
+    .signup {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .signup a {
+      color: #f1c40f;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Welcome Back</h1>
+    <p>Sign in to your magical account</p>
+
+    <!-- Form hanya tampilan -->
+    <form onsubmit="return false;">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="wizard@guardiantix.com">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your magical password">
+
+      <!-- Tombol langsung redirect ke homepage -->
+      <a href="homepage.html">
+        <button type="button">Sign In</button>
+      </a>
+    </form>
+
+    <div class="signup">
+      Don't have an account? <a href="register.html">Create one here</a>
+    </div>
+  </div>
+</body>
+</html>
