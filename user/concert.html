@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Mystic Symphony World Tour - GuardianTix</title>
+  <style>
+    /* Styles tetap sama seperti sebelumnya */
+    body { 
+      margin: 0; 
+      font-family: 'Georgia', serif; 
+      color: #FDF6E3; 
+      background: #2E2A30;
+    }
+    header, section, footer { padding: 20px; }
+    nav { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 15px 20px; 
+      background: #1a1a2e; 
+      border-bottom: 2px solid #FFD700;
+    }
+    nav ul { list-style: none; display: flex; gap: 25px; margin: 0; padding: 0; }
+    nav a { 
+      color: #FFD700; 
+      text-decoration: none; 
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+    nav a:hover { color: #C8A2C8; }
+    .logo { 
+      color: #FFD700; 
+      font-size: 24px; 
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+    
+    .concerts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .concert-card {
+      background: linear-gradient(145deg, #1a1a2e, #2E2A30);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #C8A2C8;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s;
+    }
+    
+    .concert-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(199, 62, 62, 0.2);
+      border-color: #FFD700;
+    }
+    
+    .concert-image {
+      height: 200px;
+      background: linear-gradient(45deg, #C73E3E, #C8A2C8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    
+    .concert-info {
+      padding: 20px;
+    }
+    
+    .concert-title {
+      color: #FFD700;
+      font-size: 1.4em;
+      margin-bottom: 10px;
+    }
+    
+    .concert-artist {
+      color: #C8A2C8;
+      font-size: 1.1em;
+      margin-bottom: 15px;
+    }
+    
+    .concert-details {
+      color: #FDF6E3;
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+    
+    .concert-details i {
+      color: #FFD700;
+      margin-right: 8px;
+      width: 20px;
+    }
+    
+    .concert-price {
+      color: #FFD700;
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    
+    .btn { 
+      display: inline-block; 
+      padding: 12px 25px; 
+      border-radius: 8px; 
+      text-decoration: none; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      text-align: center;
+      width: 100%;
+    }
+    .btn-primary { 
+      background: #C73E3E; 
+      color: #FDF6E3; 
+      border-color: #FFD700;
+    }
+    .btn-primary:hover { 
+      background: #FFD700; 
+      color: #2E2A30; 
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .filters {
+      background: #1a1a2e;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 1200px;
+      border-radius: 10px;
+      border: 1px solid #C8A2C8;
+    }
+    
+    .filter-group {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .filter-select {
+      background: #2E2A30;
+      color: #FDF6E3;
+      border: 1px solid #C8A2C8;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-family: 'Georgia', serif;
+    }
+    
+    .section-title {
+      text-align: center;
+      color: #FFD700;
+      font-size: 2em;
+      margin: 30px 0;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    .user-info {
+      color: #FFD700;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* Modal styles tetap sama */
+    .modal { 
+      display: none; 
+      position: fixed; 
+      z-index: 1000; 
+      left: 0; 
+      top: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(46, 42, 48, 0.95); 
+    }
+    .modal-content { 
+      background: linear-gradient(145deg, #1a1a2e, #2E2A30); 
+      color: #FDF6E3; 
+      margin: 5% auto; 
+      padding: 30px; 
+      border-radius: 15px; 
+      width: 450px; 
+      text-align: center; 
+      border: 2px solid #FFD700;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); 
+      animation: fadeIn 0.3s; 
+    }
+    @keyframes fadeIn { 
+      from {opacity: 0; transform: translateY(-30px);} 
+      to {opacity: 1; transform: translateY(0);} 
+    }
+    .close { 
+      float: right; 
+      font-size: 24px; 
+      cursor: pointer; 
+      color: #FFD700;
+      transition: color 0.3s;
+    }
+    .close:hover { color: #C73E3E; }
+
+    .ticket-options { display: flex; flex-direction: column; gap: 15px; margin: 25px 0; }
+    .ticket-card { 
+      background: #2E2A30; 
+      padding: 20px; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      border: 2px solid #C8A2C8; 
+      transition: all 0.3s; 
+      text-align: left; 
+    }
+    .ticket-card:hover { 
+      border-color: #FFD700; 
+      transform: translateX(5px);
+    }
+    .ticket-card.active { 
+      border-color: #FFD700; 
+      background: linear-gradient(145deg, #C73E3E, #2E2A30);
+      box-shadow: 0 5px 15px rgba(199, 62, 62, 0.3);
+    }
+    .ticket-card h4 { 
+      margin: 0 0 8px; 
+      color: #FFD700; 
+      font-size: 1.2em;
+    }
+    .ticket-card p { 
+      margin: 0; 
+      font-size: 16px; 
+      color: #C8A2C8; 
+    }
+
+    #selectBtn { 
+      padding: 12px 30px; 
+      margin-top: 20px; 
+      background: #C73E3E; 
+      border: 2px solid #FFD700;
+      border-radius: 8px; 
+      cursor: not-allowed; 
+      font-weight: bold; 
+      opacity: 0.5; 
+      color: #FDF6E3;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    #selectBtn.active { 
+      cursor: pointer; 
+      opacity: 1; 
+    }
+    #selectBtn.active:hover {
+      background: #FFD700;
+      color: #2E2A30;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+
+    /* Additional styles untuk single artist */
+    .artist-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .artist-name {
+      color: #FFD700;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .tour-title {
+      color: #C8A2C8;
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">GuardianTix</div>
+    <ul>
+      <li><a href="./homepage.html">Home</a></li>
+      <li><a href="./concert.html" style="color: #C8A2C8;">Concerts</a></li>
+    </ul>
+    <div id="authSection" class="user-info">
+      <!-- Will be populated by JavaScript -->
+    </div>
+  </nav>
+
+  <!-- Artist Header -->
+  <div class="artist-header">
+    <h1 class="artist-name">Ethereal Orchestra</h1>
+    <p class="tour-title">The Mystic Symphony World Tour 2024</p>
+    <div class="rating" style="font-size: 1.3em;">⭐ 5.0 | Classical Music Experience</div>
+  </div>
+
+  <!-- Tour Dates -->
+  <section>
+    <h2 class="section-title">Tour Dates & Locations</h2>
+    
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <select class="filter-select" id="cityFilter">
+          <option value="all">All Cities</option>
+          <option value="jakarta">Jakarta</option>
+          <option value="bandung">Bandung</option>
+          <option value="surabaya">Surabaya</option>
+          <option value="bali">Bali</option>
+        </select>
+        
+        <select class="filter-select" id="monthFilter">
+          <option value="all">All Months</option>
+          <option value="december">December 2024</option>
+          <option value="january">January 2025</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Concerts Grid -->
+    <div class="concerts-grid" id="concertsContainer">
+      <!-- Concert cards will be populated by JavaScript -->
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <div id="ticketModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="bookingModal.close()">&times;</span>
+      <h2 id="modalTitle" style="color: #FFD700;">Book Tickets</h2>
+      <p id="modalInfo" style="color: #C8A2C8;"></p>
+
+      <div class="ticket-options">
+        <div class="ticket-card" onclick="bookingModal.select(this,'Standard')">
+          <h4>Standard</h4>
+          <p>Rp 450.000</p>
+          <small style="color: #C8A2C8;">Regular seating</small>
+        </div>
+        <div class="ticket-card" onclick="bookingModal.select(this,'Premium')">
+          <h4>Premium</h4>
+          <p>Rp 850.000</p>
+          <small style="color: #C8A2C8;">Better seating + souvenir</small>
+        </div>
+        <div class="ticket-card" onclick="bookingModal.select(this,'VIP')">
+          <h4>VIP</h4>
+          <p>Rp 1.250.000</p>
+          <small style="color: #C8A2C8;">Front row + meet & greet</small>
+        </div>
+      </div>
+
+      <button id="selectBtn" onclick="bookingModal.confirm()">Select Tickets</button>
+    </div>
+  </div>
+
+  <script>
+    // Authentication System
+    class AuthSystem {
+      constructor() {
+        this.currentUser = JSON.parse(localStorage.getItem('guardiantix_current_user')) || null;
+      }
+
+      isLoggedIn() {
+        return this.currentUser !== null;
+      }
+
+      getCurrentUser() {
+        return this.currentUser;
+      }
+
+      logout() {
+        this.currentUser = null;
+        localStorage.removeItem('guardiantix_current_user');
+        window.location.href = './login.html';
+      }
+    }
+
+    const auth = new AuthSystem();
+
+    // Update navbar
+    function updateNavbar() {
+      const user = auth.getCurrentUser();
+      const authSection = document.getElementById('authSection');
+
+      if (user) {
+        authSection.innerHTML = `
+          <span>Hello, ${user.username}!</span> | 
+          <a href="./account.html">My Account</a> | 
+          <a href="#" onclick="logout()">Logout</a>
+        `;
+      } else {
+        authSection.innerHTML = `
+          <a href="./login.html">Login</a> | 
+          <a href="./register.html">Register</a>
+        `;
+      }
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to log out?')) {
+        auth.logout();
+      }
+    }
+
+    // Concert Data - HANYA 1 ARTIS
+    const concerts = [
+      {
+        id: 1,
+        title: "The Mystic Symphony World Tour",
+        artist: "Ethereal Orchestra",
+        genre: "classical",
+        city: "jakarta",
+        date: "December 15, 2024",
+        venue: "Jakarta Convention Center",
+        time: "7:00 PM",
+        price: "Rp 450.000",
+        image: "The Mystic Symphony",
+        description: "Experience the magical symphony that enchants millions"
+      },
+      {
+        id: 2,
+        title: "The Mystic Symphony World Tour", 
+        artist: "Ethereal Orchestra",
+        genre: "classical",
+        city: "bandung",
+        date: "December 18, 2024",
+        venue: "Bandung Convention Hall",
+        time: "7:00 PM",
+        price: "Rp 450.000",
+        image: "The Mystic Symphony",
+        description: "An unforgettable night of classical music mastery"
+      },
+      {
+        id: 3,
+        title: "The Mystic Symphony World Tour",
+        artist: "Ethereal Orchestra",
+        genre: "classical",
+        city: "surabaya",
+        date: "December 22, 2024",
+        venue: "Surabaya Grand Hall", 
+        time: "7:00 PM",
+        price: "Rp 450.000",
+        image: "The Mystic Symphony",
+        description: "The musical phenomenon live in Surabaya"
+      },
+      {
+        id: 4,
+        title: "The Mystic Symphony World Tour",
+        artist: "Ethereal Orchestra",
+        genre: "classical", 
+        city: "bali",
+        date: "January 12, 2025",
+        venue: "Bali Beach Arena",
+        time: "7:00 PM",
+        price: "Rp 450.000",
+        image: "The Mystic Symphony",
+        description: "Open air concert under the stars"
+      }
+    ];
+
+    // Render Concerts
+    function renderConcerts(filteredConcerts = concerts) {
+      const container = document.getElementById('concertsContainer');
+      container.innerHTML = '';
+
+      if (filteredConcerts.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #C8A2C8;">
+            <h3>No concerts found for selected filters</h3>
+            <p>Try adjusting your search criteria</p>
+          </div>
+        `;
+        return;
+      }
+
+      filteredConcerts.forEach(concert => {
+        const concertCard = `
+          <div class="concert-card">
+            <div class="concert-image">${concert.image}</div>
+            <div class="concert-info">
+              <h3 class="concert-title">${concert.city.charAt(0).toUpperCase() + concert.city.slice(1)} Concert</h3>
+              <p class="concert-artist">by ${concert.artist}</p>
+              <div class="concert-details">
+                <div><i>📅</i> ${concert.date}</div>
+                <div><i>📍</i> ${concert.venue}</div>
+                <div><i>⏰</i> ${concert.time}</div>
+                <div><i>🎵</i> ${concert.genre.charAt(0).toUpperCase() + concert.genre.slice(1)}</div>
+              </div>
+              <p style="color: #C8A2C8; font-style: italic; margin: 10px 0;">${concert.description}</p>
+              <div class="concert-price">From ${concert.price}</div>
+              <button class="btn btn-primary" onclick="bookingModal.openConcert(${concert.id})">Book Tickets</button>
+            </div>
+          </div>
+        `;
+        container.innerHTML += concertCard;
+      });
+    }
+
+    // Filter Concerts
+    function filterConcerts() {
+      const city = document.getElementById('cityFilter').value;
+      const month = document.getElementById('monthFilter').value;
+
+      const filtered = concerts.filter(concert => {
+        const cityMatch = city === 'all' || concert.city === city;
+        const monthMatch = month === 'all' || 
+                          (month === 'december' && concert.date.includes('December')) ||
+                          (month === 'january' && concert.date.includes('January'));
+        
+        return cityMatch && monthMatch;
+      });
+
+      renderConcerts(filtered);
+    }
+
+    // Booking Modal System
+    class BookingModal {
+      constructor(modalId, selectBtnId) {
+        this.modal = document.getElementById(modalId);
+        this.selectBtn = document.getElementById(selectBtnId);
+        this.selectedTicket = null;
+        this.selectedConcert = null;
+
+        window.addEventListener("click", (event) => {
+          if (event.target === this.modal) this.close();
+        });
+      }
+
+      openConcert(concertId) {
+        if (!auth.isLoggedIn()) {
+          alert('Please login first to book tickets!');
+          window.location.href = './login.html';
+          return;
+        }
+
+        const concert = concerts.find(c => c.id === concertId);
+        this.selectedConcert = concert;
+
+        const title = document.getElementById("modalTitle");
+        const info = document.getElementById("modalInfo");
+
+        title.innerText = `Book Tickets - ${concert.city.charAt(0).toUpperCase() + concert.city.slice(1)}`;
+        info.innerText = `${concert.date} | ${concert.venue} | ${concert.time}`;
+        this.modal.style.display = "block";
+
+        this.selectedTicket = null;
+        document.querySelectorAll('.ticket-card').forEach(card => card.classList.remove('active'));
+        this.selectBtn.classList.remove("active");
+        this.selectBtn.disabled = true;
+      }
+
+      close() { 
+        this.modal.style.display = "none"; 
+        this.selectedConcert = null;
+      }
+
+      select(element, type){
+        document.querySelectorAll('.ticket-card').forEach(card => card.classList.remove('active'));
+        element.classList.add('active');
+        this.selectedTicket = type;
+        this.selectBtn.classList.add("active");
+        this.selectBtn.disabled = false;
+      }
+
+      confirm(){
+        if(this.selectedTicket && this.selectedConcert){
+          const ticketData = {
+            concert: this.selectedConcert.title,
+            artist: this.selectedConcert.artist,
+            city: this.selectedConcert.city,
+            date: this.selectedConcert.date,
+            venue: this.selectedConcert.venue,
+            type: this.selectedTicket,
+            price: this.getPrice(this.selectedTicket)
+          };
+          window.location.href = `./payment.html?data=${encodeURIComponent(JSON.stringify(ticketData))}`;
+        } else {
+          alert('Please select a ticket type first.');
+        }
+      }
+
+      getPrice(type){
+        const prices = { "Standard":"Rp 450.000", "Premium":"Rp 850.000", "VIP":"Rp 1.250.000" };
+        return prices[type];
+      }
+    }
+
+    const bookingModal = new BookingModal("ticketModal","selectBtn");
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!auth.isLoggedIn()) {
+        window.location.href = './login.html';
+        return;
+      }
+      
+      updateNavbar();
+      renderConcerts();
+      
+      // Add event listeners to filters
+      document.getElementById('cityFilter').addEventListener('change', filterConcerts);
+      document.getElementById('monthFilter').addEventListener('change', filterConcerts);
+
+      setTimeout(() => {
+        document.body.style.opacity = '1';
+        document.body.style.transition = 'opacity 0.5s ease';
+      }, 100);
+    });
+  </script>
+
+</body>
+</html>

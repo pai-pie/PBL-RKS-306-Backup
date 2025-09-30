@@ -7,45 +7,213 @@
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom, #1a1a2e, #0f0f1c);
-      color: #fff;
+      font-family: 'Georgia', serif;
+      background: linear-gradient(135deg, #2E2A30 0%, #1a1a2e 100%);
+      color: #FDF6E3;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Magical background effects */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(199, 62, 62, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(200, 162, 200, 0.05) 0%, transparent 50%);
+      z-index: -1;
     }
 
     .login-container {
-      background: linear-gradient(to bottom, #4b3621, #2c1c0e);
-      padding: 2rem;
-      border-radius: 12px;
-      width: 350px;
+      background: linear-gradient(145deg, #1a1a2e, #2E2A30);
+      padding: 2.5rem;
+      border-radius: 15px;
+      width: 380px;
       text-align: center;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 215, 0, 0.2);
+      border: 2px solid #FFD700;
+      position: relative;
+      z-index: 1;
     }
 
-    .login-container h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #f1c40f; }
-    .login-container p { font-size: 0.9rem; margin-bottom: 1.5rem; color: #dcdcdc; }
-    .login-container label { display: block; text-align: left; margin-bottom: 0.25rem; font-weight: bold; color: #f1c40f; }
-    .login-container input { width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: none; border-radius: 6px; background: #1a1a2e; color: #fff; }
-    .login-container button { width: 100%; padding: 0.7rem; background: #f1c40f; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #000; }
-    .login-container button:hover { background: #d4ac0d; }
-    .signup { margin-top: 1rem; font-size: 0.9rem; }
-    .signup a { color: #f1c40f; text-decoration: none; }
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #FFD700, #C73E3E, #C8A2C8, #FFD700);
+      border-radius: 17px;
+      z-index: -1;
+      opacity: 0.3;
+    }
+
+    .logo {
+      color: #FFD700;
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+
+    .login-container h1 { 
+      font-size: 1.8rem; 
+      margin-bottom: 0.5rem; 
+      color: #FFD700; 
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+    
+    .login-container p { 
+      font-size: 0.95rem; 
+      margin-bottom: 1.5rem; 
+      color: #C8A2C8; 
+    }
+    
+    .login-container label { 
+      display: block; 
+      text-align: left; 
+      margin-bottom: 0.5rem; 
+      font-weight: bold; 
+      color: #FFD700; 
+      font-size: 0.9rem;
+    }
+    
+    .login-container input { 
+      width: 100%; 
+      padding: 0.75rem; 
+      margin-bottom: 1.2rem; 
+      border: 2px solid #C8A2C8; 
+      border-radius: 8px; 
+      background: #2E2A30; 
+      color: #FDF6E3; 
+      font-family: 'Georgia', serif;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .login-container input:focus {
+      outline: none;
+      border-color: #FFD700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      background: #1a1a2e;
+    }
+
+    .login-container input::placeholder {
+      color: #C8A2C8;
+      opacity: 0.7;
+    }
+    
+    .login-container button { 
+      width: 100%; 
+      padding: 0.85rem; 
+      background: linear-gradient(135deg, #C73E3E, #A52A2A);
+      border: 2px solid #FFD700;
+      border-radius: 8px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      color: #FDF6E3; 
+      font-family: 'Georgia', serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      margin-top: 0.5rem;
+    }
+    
+    .login-container button:hover { 
+      background: linear-gradient(135deg, #FFD700, #D4AC0D);
+      color: #2E2A30;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .login-container button:active {
+      transform: translateY(0);
+    }
+
+    .signup { 
+      margin-top: 1.5rem; 
+      font-size: 0.9rem; 
+      color: #C8A2C8;
+    }
+    
+    .signup a { 
+      color: #FFD700; 
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    .signup a:hover { 
+      color: #C8A2C8; 
+      text-decoration: underline;
+    }
+
+    .error-message {
+      color: #C73E3E;
+      background: rgba(199, 62, 62, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #C73E3E;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    .success-message {
+      color: #FFD700;
+      background: rgba(255, 215, 0, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #FFD700;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    /* Animation for magical effect */
+    @keyframes glow {
+      0%, 100% { 
+        box-shadow: 
+          0 10px 30px rgba(0, 0, 0, 0.5),
+          0 0 20px rgba(255, 215, 0, 0.3);
+      }
+      50% { 
+        box-shadow: 
+          0 10px 30px rgba(0, 0, 0, 0.5),
+          0 0 30px rgba(255, 215, 0, 0.5);
+      }
+    }
+
+    .login-container {
+      animation: glow 3s ease-in-out infinite;
+    }
   </style>
 </head>
 <body>
 
   <div class="login-container">
+    <div class="logo">GuardianTix</div>
     <h1>Welcome Back</h1>
     <p>Sign in to your magical account</p>
 
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+
     <form id="loginForm">
-      <label for="email">Email</label>
+      <label for="email">Owl Post Address</label>
       <input type="email" id="email" placeholder="wizard@guardiantix.com" required>
 
-      <label for="password">Password</label>
+      <label for="password">Secret Spell</label>
       <input type="password" id="password" placeholder="Enter your magical password" required>
 
       <button type="submit">Sign In</button>
@@ -57,33 +225,144 @@
   </div>
 
   <script>
-    // Class User
-    class User {
-      constructor(email, password) {
-        this.email = email;
-        this.password = password;
+    // Authentication System
+    class AuthSystem {
+      constructor() {
+        this.users = JSON.parse(localStorage.getItem('guardiantix_users')) || [];
+        this.currentUser = JSON.parse(localStorage.getItem('guardiantix_current_user')) || null;
       }
 
-      login() {
-        if(this.email && this.password){
-          // simulasi login sukses
-          window.location.href = "homepage.html";
-        } else {
-          alert("Please enter valid credentials!");
+      login(email, password) {
+        const user = this.users.find(u => u.email === email && u.password === password);
+        if (user) {
+          this.currentUser = user;
+          localStorage.setItem('guardiantix_current_user', JSON.stringify(user));
+          return { success: true, user };
         }
+        return { success: false, message: 'Invalid magical credentials! Please check your owl post address and secret spell.' };
+      }
+
+      register(userData) {
+        // Check if user already exists
+        if (this.users.find(u => u.email === userData.email)) {
+          return { success: false, message: 'A wizard already exists with this owl post address!' };
+        }
+
+        if (userData.password.length < 8) {
+          return { success: false, message: 'Secret spell must be at least 8 magical characters long!' };
+        }
+
+        if (userData.password !== userData.confirmPassword) {
+          return { success: false, message: 'Secret spells do not match!' };
+        }
+
+        const newUser = {
+          id: Date.now().toString(),
+          username: userData.username,
+          email: userData.email,
+          password: userData.password,
+          joinDate: new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+          phone: userData.phone || ''
+        };
+
+        this.users.push(newUser);
+        localStorage.setItem('guardiantix_users', JSON.stringify(this.users));
+        
+        // Auto login after registration
+        this.currentUser = newUser;
+        localStorage.setItem('guardiantix_current_user', JSON.stringify(newUser));
+
+        return { success: true, user: newUser };
+      }
+
+      logout() {
+        this.currentUser = null;
+        localStorage.removeItem('guardiantix_current_user');
+      }
+
+      isLoggedIn() {
+        return this.currentUser !== null;
+      }
+
+      getCurrentUser() {
+        return this.currentUser;
       }
     }
 
-    // event submit
+    const auth = new AuthSystem();
+
+    // Check if already logged in
+    if (auth.isLoggedIn()) {
+      window.location.href = 'homepage.html';
+    }
+
+    // Event submit
     const loginForm = document.getElementById("loginForm");
+    const errorMessage = document.getElementById("errorMessage");
+    const successMessage = document.getElementById("successMessage");
+
+    // Check for success message from registration
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('registered') === 'true') {
+      successMessage.textContent = '✨ Magical account created successfully! Please sign in.';
+      successMessage.style.display = 'block';
+      
+      // Remove parameter from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     loginForm.addEventListener("submit", function(e){
       e.preventDefault();
-      const email = document.getElementById("email").value;
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-      const user = new User(email,password);
-      user.login();
+
+      // Basic validation
+      if (!email || !password) {
+        errorMessage.textContent = 'Please fill in all magical fields!';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      const result = auth.login(email, password);
+      
+      if (result.success) {
+        // Add magical loading effect
+        const button = document.querySelector('button[type="submit"]');
+        const originalText = button.textContent;
+        button.textContent = 'Casting Sign In Spell...';
+        button.disabled = true;
+
+        // Show success message
+        errorMessage.style.display = 'none';
+        successMessage.textContent = '✨ Welcome back! Redirecting to your magical journey...';
+        successMessage.style.display = 'block';
+
+        setTimeout(() => {
+          window.location.href = "homepage.html";
+        }, 1500);
+      } else {
+        errorMessage.textContent = result.message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+      }
+    });
+
+    // Add some interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.style.transform = 'scale(1.02)';
+        });
+        input.addEventListener('blur', function() {
+          this.style.transform = 'scale(1)';
+        });
+      });
     });
   </script>
-
 </body>
 </html>

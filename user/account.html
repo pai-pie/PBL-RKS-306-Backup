@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account - GuardianTix</title>
+  <style>
+    body { 
+      margin: 0; 
+      font-family: 'Georgia', serif; 
+      color: #FDF6E3; 
+      background: #2E2A30;
+    }
+    header, section, footer { padding: 20px; text-align: center; }
+    nav { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 15px 20px; 
+      background: #1a1a2e; 
+      border-bottom: 2px solid #FFD700;
+    }
+    nav ul { list-style: none; display: flex; gap: 25px; margin: 0; padding: 0; }
+    nav a { 
+      color: #FFD700; 
+      text-decoration: none; 
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+    nav a:hover { color: #C8A2C8; }
+    .logo { 
+      color: #FFD700; 
+      font-size: 24px; 
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+
+    .account-container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .welcome-section {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: linear-gradient(145deg, #1a1a2e, #2E2A30);
+      border-radius: 15px;
+      border: 2px solid #FFD700;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .welcome-section h1 {
+      color: #FFD700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      margin-bottom: 10px;
+    }
+
+    .welcome-section p {
+      color: #C8A2C8;
+      font-size: 1.1em;
+    }
+
+    .account-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .account-card {
+      background: linear-gradient(145deg, #1a1a2e, #2E2A30);
+      padding: 25px;
+      border-radius: 12px;
+      border: 2px solid #C8A2C8;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .account-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(199, 62, 62, 0.2);
+      border-color: #FFD700;
+    }
+
+    .account-card h3 {
+      color: #FFD700;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .profile-info {
+      text-align: left;
+    }
+
+    .info-item {
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #C8A2C8;
+    }
+
+    .info-label {
+      color: #FFD700;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .info-value {
+      color: #FDF6E3;
+      font-size: 1.1em;
+    }
+
+    .ticket-item {
+      background: rgba(46, 42, 48, 0.7);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #C8A2C8;
+      text-align: left;
+    }
+
+    .ticket-code {
+      color: #FFD700;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .ticket-details {
+      color: #C8A2C8;
+      margin: 5px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #C73E3E, #A52A2A);
+      color: #FDF6E3;
+      border: 2px solid #FFD700;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 5px;
+    }
+
+    .btn:hover {
+      background: linear-gradient(135deg, #FFD700, #D4AC0D);
+      color: #2E2A30;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #C8A2C8, #9B59B6);
+    }
+
+    .no-tickets {
+      text-align: center;
+      color: #C8A2C8;
+      font-style: italic;
+      padding: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 15px;
+      background: rgba(255, 215, 0, 0.1);
+      border-radius: 8px;
+      border: 1px solid #FFD700;
+    }
+
+    .stat-number {
+      color: #FFD700;
+      font-size: 2em;
+      font-weight: bold;
+      display: block;
+    }
+
+    .stat-label {
+      color: #C8A2C8;
+      font-size: 0.9em;
+    }
+
+    footer { 
+      background: #1a1a2e; 
+      margin-top: 40px; 
+      padding: 40px 20px;
+      border-top: 2px solid #C8A2C8;
+    }
+
+    /* Modal untuk edit profile */
+    .modal { 
+      display: none; 
+      position: fixed; 
+      z-index: 1000; 
+      left: 0; 
+      top: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(46, 42, 48, 0.95); 
+    }
+    .modal-content { 
+      background: linear-gradient(145deg, #1a1a2e, #2E2A30); 
+      color: #FDF6E3; 
+      margin: 5% auto; 
+      padding: 30px; 
+      border-radius: 15px; 
+      width: 450px; 
+      text-align: center; 
+      border: 2px solid #FFD700;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); 
+      animation: fadeIn 0.3s; 
+    }
+    @keyframes fadeIn { 
+      from {opacity: 0; transform: translateY(-30px);} 
+      to {opacity: 1; transform: translateY(0);} 
+    }
+    .close { 
+      float: right; 
+      font-size: 24px; 
+      cursor: pointer; 
+      color: #FFD700;
+      transition: color 0.3s;
+    }
+    .close:hover { color: #C73E3E; }
+    .modal input { 
+      width: 100%; 
+      padding: 12px; 
+      margin: 10px 0; 
+      border: 2px solid #C8A2C8; 
+      border-radius: 8px; 
+      background: #2E2A30; 
+      color: #FDF6E3; 
+      font-family: 'Georgia', serif;
+      box-sizing: border-box;
+    }
+    .modal input:focus {
+      outline: none;
+      border-color: #FFD700;
+    }
+
+    .success-message {
+      color: #FFD700;
+      background: rgba(199, 62, 62, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #FFD700;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">GuardianTix</div>
+    <ul>
+      <li><a href="homepage.html">Home</a></li>
+      <li><a href="#">Concerts</a></li>
+      <li><a href="account.html">My Account</a></li>
+    </ul>
+    <div id="authSection">
+      <!-- Will be populated by JavaScript -->
+    </div>
+  </nav>
+
+  <div class="account-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <h1 id="welcomeTitle">✨ Your Magical Account ✨</h1>
+      <p id="welcomeSubtitle">Manage your tickets, profile, and magical preferences</p>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-number" id="totalTickets">0</span>
+          <span class="stat-label">Total Tickets</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="upcomingEvents">0</span>
+          <span class="stat-label">Upcoming Events</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="memberSince">2024</span>
+          <span class="stat-label">Member Since</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Grid -->
+    <div class="account-grid">
+      <!-- Profile Information -->
+      <div class="account-card">
+        <h3>🧙‍♂️ Profile Information</h3>
+        <div class="profile-info">
+          <div class="info-item">
+            <span class="info-label">Wizard Name</span>
+            <span class="info-value" id="userName">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Owl Post Address</span>
+            <span class="info-value" id="userEmail">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Member Since</span>
+            <span class="info-value" id="joinDate">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Magical Status</span>
+            <span class="info-value">✨ Enchanted Member</span>
+          </div>
+        </div>
+        <button class="btn" onclick="openEditModal()">Edit Profile</button>
+      </div>
+
+      <!-- My Tickets -->
+      <div class="account-card">
+        <h3>🎫 My Tickets</h3>
+        <div id="ticketsList">
+          <div class="no-tickets">No tickets purchased yet</div>
+        </div>
+        <a href="homepage.html" class="btn btn-secondary">Browse Events</a>
+      </div>
+
+      <!-- Account Actions -->
+      <div class="account-card">
+        <h3>⚡ Quick Actions</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn" onclick="downloadAllTickets()">Download All Tickets</button>
+          <button class="btn btn-secondary" onclick="viewPaymentHistory()">Payment History</button>
+          <button class="btn" onclick="changePassword()">Change Secret Spell</button>
+          <button class="btn btn-secondary" onclick="contactSupport()">Contact Owl Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <h2 style="color: #FFD700;">Need Magical Assistance?</h2>
+    <div class="contact-item">
+      <p>Owl Post Hours: Monday - Friday, 09:00 - 17:00</p>
+      <p>📞 <a href="tel:+62211234567">+62 21-1234-567</a></p>
+      <p>✉️ <a href="mailto:info@guardiantix.com">info@guardiantix.com</a></p>
+    </div>
+    <p style="margin-top:20px; color: #C8A2C8;">© 2024 GuardianTix — All rights reserved.</p>
+  </footer>
+
+  <!-- Edit Profile Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditModal()">&times;</span>
+      <h2 style="color: #FFD700;">Edit Magical Profile</h2>
+      
+      <form id="editForm">
+        <input type="text" id="editName" placeholder="Wizard Name" required>
+        <input type="email" id="editEmail" placeholder="Owl Post Address" required>
+        <input type="text" id="editPhone" placeholder="Crystal Ball Number">
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+          <button type="button" class="btn" onclick="saveProfile()">Save Changes</button>
+          <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Authentication System
+    class AuthSystem {
+      constructor() {
+        this.currentUser = JSON.parse(localStorage.getItem('guardiantix_current_user')) || null;
+        this.users = JSON.parse(localStorage.getItem('guardiantix_users')) || [];
+      }
+
+      isLoggedIn() {
+        return this.currentUser !== null;
+      }
+
+      getCurrentUser() {
+        return this.currentUser;
+      }
+
+      updateUserProfile(updatedData) {
+        // Update current user data
+        this.currentUser = { ...this.currentUser, ...updatedData };
+        localStorage.setItem('guardiantix_current_user', JSON.stringify(this.currentUser));
+        
+        // Update in users array
+        const userIndex = this.users.findIndex(u => u.id === this.currentUser.id);
+        if (userIndex !== -1) {
+          this.users[userIndex] = this.currentUser;
+          localStorage.setItem('guardiantix_users', JSON.stringify(this.users));
+        }
+        
+        return this.currentUser;
+      }
+
+      logout() {
+        this.currentUser = null;
+        localStorage.removeItem('guardiantix_current_user');
+        window.location.href = 'login.html';
+      }
+    }
+
+    const auth = new AuthSystem();
+
+    // Check authentication on page load
+    if (!auth.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    // Update navbar berdasarkan login status
+    function updateNavbar() {
+      const user = auth.getCurrentUser();
+      const authSection = document.getElementById('authSection');
+
+      if (user) {
+        authSection.innerHTML = `
+          <span style="color: #FFD700;">Hello, ${user.username}!</span> | 
+          <a href="account.html" style="color: #FFD700;">My Account</a> | 
+          <a href="#" onclick="logout()" style="color: #C8A2C8;">Logout</a>
+        `;
+      } else {
+        authSection.innerHTML = `
+          <a href="login.html" style="color: #FFD700;">Login</a> | 
+          <a href="register.html" style="color: #C8A2C8;">Register</a>
+        `;
+      }
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to log out?')) {
+        auth.logout();
+      }
+    }
+
+    // Class untuk User Account
+    class UserAccount {
+      constructor() {
+        this.userData = auth.getCurrentUser();
+        this.tickets = this.loadTickets();
+        this.init();
+      }
+
+      loadTickets() {
+        // Simulasi data tiket dari localStorage
+        return JSON.parse(localStorage.getItem('guardiantix_tickets')) || [];
+      }
+
+      init() {
+        this.displayUserInfo();
+        this.displayTickets();
+        this.displayStats();
+        updateNavbar();
+      }
+
+      displayUserInfo() {
+        const user = auth.getCurrentUser();
+        document.getElementById('userName').textContent = user.username;
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('joinDate').textContent = user.joinDate;
+        document.getElementById('welcomeTitle').textContent = `✨ Welcome, ${user.username}! ✨`;
+        document.getElementById('welcomeSubtitle').textContent = `Your magical journey began on ${user.joinDate}`;
+      }
+
+      displayTickets() {
+        const ticketsList = document.getElementById('ticketsList');
+        
+        if (this.tickets.length === 0) {
+          ticketsList.innerHTML = '<div class="no-tickets">No tickets purchased yet. Start your magical journey!</div>';
+          return;
+        }
+
+        ticketsList.innerHTML = this.tickets.map(ticket => `
+          <div class="ticket-item">
+            <div class="ticket-code">${ticket.bookingCode}</div>
+            <div class="ticket-details">
+              <strong>${ticket.type}</strong> - ${ticket.concert}<br>
+              <small>${ticket.date} | ${ticket.venue}</small>
+            </div>
+            <button class="btn" onclick="account.downloadTicket('${ticket.bookingCode}')" style="margin-top: 10px;">
+              Download Ticket
+            </button>
+          </div>
+        `).join('');
+      }
+
+      displayStats() {
+        document.getElementById('totalTickets').textContent = this.tickets.length;
+        document.getElementById('upcomingEvents').textContent = this.tickets.filter(t => {
+          const eventDate = new Date(t.date);
+          return eventDate > new Date();
+        }).length;
+        
+        const user = auth.getCurrentUser();
+        document.getElementById('memberSince').textContent = new Date(user.joinDate).getFullYear();
+      }
+
+      updateProfile(newData) {
+        const updatedUser = auth.updateUserProfile(newData);
+        this.userData = updatedUser;
+        this.displayUserInfo();
+        this.showMessage('Profile updated successfully!', true);
+      }
+
+      addTicket(ticketData) {
+        this.tickets.push(ticketData);
+        localStorage.setItem('guardiantix_tickets', JSON.stringify(this.tickets));
+        this.displayTickets();
+        this.displayStats();
+      }
+
+      downloadTicket(bookingCode) {
+        const ticket = this.tickets.find(t => t.bookingCode === bookingCode);
+        if (ticket) {
+          const content = `🎫 GuardianTix Magical Ticket
+Booking Code: ${ticket.bookingCode}
+Type: ${ticket.type}
+Concert: ${ticket.concert}
+Date: ${ticket.date}
+Venue: ${ticket.venue}
+
+Present this at the enchanted entrance!`;
+          
+          const blob = new Blob([content], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Ticket-${ticket.bookingCode}.txt`;
+          a.click();
+          URL.revokeObjectURL(url);
+          
+          this.showMessage('Ticket downloaded successfully!', true);
+        }
+      }
+
+      showMessage(message, isSuccess = true) {
+        // Create temporary message element
+        const messageEl = document.createElement('div');
+        messageEl.className = 'success-message';
+        messageEl.textContent = message;
+        messageEl.style.display = 'block';
+        messageEl.style.color = isSuccess ? '#FFD700' : '#C73E3E';
+        messageEl.style.borderColor = isSuccess ? '#FFD700' : '#C73E3E';
+        
+        document.querySelector('.account-container').prepend(messageEl);
+        
+        setTimeout(() => {
+          messageEl.remove();
+        }, 3000);
+      }
+    }
+
+    // Global functions
+    const account = new UserAccount();
+
+    function openEditModal() {
+      const user = auth.getCurrentUser();
+      document.getElementById('editModal').style.display = 'block';
+      document.getElementById('editName').value = user.username;
+      document.getElementById('editEmail').value = user.email;
+      document.getElementById('editPhone').value = user.phone || '';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function saveProfile() {
+      const newData = {
+        username: document.getElementById('editName').value,
+        email: document.getElementById('editEmail').value,
+        phone: document.getElementById('editPhone').value
+      };
+      
+      if (!newData.username || !newData.email) {
+        account.showMessage('Please fill in all required fields!', false);
+        return;
+      }
+      
+      account.updateProfile(newData);
+      closeEditModal();
+    }
+
+    function downloadAllTickets() {
+      if (account.tickets.length === 0) {
+        account.showMessage('No tickets to download!', false);
+        return;
+      }
+      
+      account.tickets.forEach((ticket, index) => {
+        setTimeout(() => account.downloadTicket(ticket.bookingCode), index * 500);
+      });
+      
+      account.showMessage('Starting download of all tickets...', true);
+    }
+
+    function changePassword() {
+      account.showMessage('Owl post has been sent with instructions to change your secret spell!', true);
+    }
+
+    function contactSupport() {
+      account.showMessage('Our magical support team will respond via owl post within 24 hours!', true);
+    }
+
+    function viewPaymentHistory() {
+      account.showMessage('Payment history feature coming in the next magical update!', true);
+    }
+
+    // Simulate adding a ticket if coming from payment success
+    window.addEventListener('load', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const newTicket = urlParams.get('newTicket');
+      
+      if (newTicket) {
+        // Add the new ticket to account
+        const ticketData = {
+          bookingCode: `MAGIC-${Date.now().toString().slice(-6)}`,
+          type: urlParams.get('type') || 'Standard',
+          concert: 'The Mystic Symphony World Tour',
+          date: 'December 15, 2024',
+          venue: 'Jakarta Convention Center',
+          purchaseDate: new Date().toLocaleDateString()
+        };
+        account.addTicket(ticketData);
+        account.showMessage('🎉 New ticket added to your collection!', true);
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      updateNavbar();
+    });
+  </script>
+</body>
+</html>
