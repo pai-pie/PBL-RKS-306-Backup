@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account - GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/user/account.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">GuardianTix</div>
+    <ul>
+      <li><a href="{{ url_for('user_home') }}">Home</a></li>
+      <li><a href="#">Concerts</a></li>
+      <li><a href="{{ url_for('admin_home') }}">My Account</a></li>
+    </ul>
+    <div id="authSection"></div>
+  </nav>
+
+  <div class="account-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <h1 id="welcomeTitle">✨ Your Magical Account ✨</h1>
+      <p id="welcomeSubtitle">Manage your tickets, profile, and magical preferences</p>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-number" id="totalTickets">0</span>
+          <span class="stat-label">Total Tickets</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="upcomingEvents">0</span>
+          <span class="stat-label">Upcoming Events</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="memberSince">2024</span>
+          <span class="stat-label">Member Since</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Grid -->
+    <div class="account-grid">
+      <!-- Profile Information -->
+      <div class="account-card">
+        <h3>🧙‍♂️ Profile Information</h3>
+        <div class="profile-info">
+          <div class="info-item">
+            <span class="info-label">Wizard Name</span>
+            <span class="info-value" id="userName">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Owl Post Address</span>
+            <span class="info-value" id="userEmail">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Member Since</span>
+            <span class="info-value" id="joinDate">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Magical Status</span>
+            <span class="info-value">✨ Enchanted Member</span>
+          </div>
+        </div>
+        <button class="btn" onclick="openEditModal()">Edit Profile</button>
+      </div>
+
+      <!-- My Tickets -->
+      <div class="account-card">
+        <h3>🎫 My Tickets</h3>
+        <div id="ticketsList">
+          <div class="no-tickets">No tickets purchased yet</div>
+        </div>
+        <a href="{{ url_for('user_home') }}" class="btn btn-secondary">Browse Events</a>
+      </div>
+
+      <!-- Account Actions -->
+      <div class="account-card">
+        <h3>⚡ Quick Actions</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn" onclick="downloadAllTickets()">Download All Tickets</button>
+          <button class="btn btn-secondary" onclick="viewPaymentHistory()">Payment History</button>
+          <button class="btn" onclick="changePassword()">Change Secret Spell</button>
+          <button class="btn btn-secondary" onclick="contactSupport()">Contact Owl Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <h2 style="color: #FFD700;">Need Magical Assistance?</h2>
+    <div class="contact-item">
+      <p>Owl Post Hours: Monday - Friday, 09:00 - 17:00</p>
+      <p>📞 <a href="tel:+62211234567">+62 21-1234-567</a></p>
+      <p>✉️ <a href="mailto:info@guardiantix.com">info@guardiantix.com</a></p>
+    </div>
+    <p style="margin-top:20px; color: #C8A2C8;">© 2024 GuardianTix — All rights reserved.</p>
+  </footer>
+
+  <!-- Edit Profile Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditModal()">&times;</span>
+      <h2 style="color: #FFD700;">Edit Magical Profile</h2>
+      
+      <form id="editForm">
+        <input type="text" id="editName" placeholder="Wizard Name" required>
+        <input type="email" id="editEmail" placeholder="Owl Post Address" required>
+        <input type="text" id="editPhone" placeholder="Crystal Ball Number">
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+          <button type="button" class="btn" onclick="saveProfile()">Save Changes</button>
+          <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/script/user/account.js"></script>
+</body>
+</html>

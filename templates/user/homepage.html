@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/user/homepage.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">GuardianTix</div>
+    <ul>
+      <li><a href="homepage.html">Home</a></li>
+      <li><a href="concert.html">Concerts</a></li>
+    </ul>
+    <div id="authSection" class="user-info">
+      <!-- Will be populated by JavaScript -->
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>GuardianTix</h1>
+    <p>Discover magical concert experiences that will enchant your soul. <br>Book your tickets to extraordinary musical adventures.</p>
+    <div class="welcome-message" id="welcomeMessage"></div>
+  </section>
+
+  <!-- World Tour -->
+  <section>
+    <h2>World Tour 2025</h2>
+    <p>The Mystic Symphony World Tour<br>by Ethereal Orchestra</p>
+  </section>
+
+  <!-- Main Event Highlight -->
+  <section>
+    <h2>Now On Tour</h2>
+    <div class="cities">
+      <div class="city-card" style="width: 450px; margin: 0 auto; text-align: center;">
+        <h3 style="font-size: 1.8em;">The Mystic Symphony</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
+        <div class="rating" style="font-size: 1.3em;">Sold in 3 Cities</div>
+        <p style="margin: 20px 0; font-size: 1.1em;">The musical phenomenon that's taking the world by storm</p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
+          <a href="concert.html" class="btn btn-primary">Find Tickets</a>
+          <a href="concert.html" class="btn btn-secondary">Tour Dates</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Access -->
+  <section>
+    <h2>Quick Access</h2>
+    <div class="cities">
+      <div class="city-card">
+        <h3>📅 View Schedule</h3>
+        <p>See all tour dates and venues</p>
+        <a href="concert.html" class="btn btn-secondary">View Calendar</a>
+      </div>
+      <div class="city-card">
+        <h3>🎫 Ticket Info</h3>
+        <p>VIP, Premium & Standard tickets</p>
+        <a href="concert.html" class="btn btn-secondary">Learn More</a>
+      </div>
+      <div class="city-card">
+        <h3>📍 Venues</h3>
+        <p>Concert locations & directions</p>
+        <a href="concert.html" class="btn btn-secondary">View Map</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Contact Person -->
+  <footer>
+    <h2 style="color: #FFD700;">Contact Person</h2>
+    <div class="contact-item">
+      <p>Jam kerja: Senin - Jumat, 09:00 - 17:00</p>
+      <p>📞 <a href="tel:+62211234567">+62 21-1234-567</a></p>
+      <p>✉️ <a href="mailto:info@guardiantix.com">info@guardiantix.com</a></p>
+    </div>
+    <p style="margin-top:20px; color: #C8A2C8;">© 2024 GuardianTix — All rights reserved.</p>
+  </footer>
+
+  <!-- Modal -->
+  <div id="ticketModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="bookingModal.close()">&times;</span>
+      <h2 id="modalTitle" style="color: #FFD700;">Book Tickets</h2>
+      <p id="modalInfo" style="color: #C8A2C8;"></p>
+
+      <div class="ticket-options">
+        <div class="ticket-card" onclick="bookingModal.select(this,'Standard')">
+          <h4>Standard</h4>
+          <p>Rp 450.000</p>
+        </div>
+        <div class="ticket-card" onclick="bookingModal.select(this,'Premium')">
+          <h4>Premium</h4>
+          <p>Rp 850.000</p>
+        </div>
+        <div class="ticket-card" onclick="bookingModal.select(this,'VIP')">
+          <h4>VIP</h4>
+          <p>Rp 1.250.000</p>
+        </div>
+      </div>
+
+      <button id="selectBtn" onclick="bookingModal.confirm()">Select Tickets</button>
+    </div>
+  </div>
+
+  <script src="/static/script/auth/login.js"></script>
+  <script src="/static/script/user/homepage.js"></script>
+</body>
+</html>

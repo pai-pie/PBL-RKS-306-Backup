@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/user/payment.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>Magical Payment</h1>
+    <div class="ticket-info">
+      <div class="ticket-type" id="ticketType"></div>
+      <div class="ticket-price" id="ticketPrice"></div>
+    </div>
+
+    <label for="method">Choose Payment Method:</label>
+    <select id="method" onchange="payment.chooseMethod(this.value)">
+      <option value="">-- Select Magical Payment --</option>
+      <option value="E-Wallet">E-Wallet</option>
+      <option value="Bank Transfer">Bank Transfer</option>
+    </select>
+
+    <div class="payment-details" id="paymentDetails"></div>
+
+    <button onclick="payment.confirm()">Complete Magical Payment</button>
+  </div>
+
+  <script src="/static/script/user/payment.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success - GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/user/succes.css">
+</head>
+<body>
+
+  <!-- Confetti container -->
+  <div class="confetti" id="confetti"></div>
+
+  <div class="container">
+    <div class="success-icon">✨</div>
+    <h1>Magical Purchase Complete!</h1>
+    
+    <div class="celebration">Your enchanted tickets are ready!</div>
+    
+    <div class="details" id="ticketDetails"></div>
+    <div class="code" id="bookingCode"></div>
+    
+    <div class="buttons">
+      <button onclick="ticket.download()">📜 Download E-Ticket Scroll</button>
+      <button class="back" onclick="ticket.goHome()">🏰 Return to Great Hall</button>
+    </div>
+  </div>
+
+  <script src="/static/script/user/success.js"></script>
+</body>
+</html>
