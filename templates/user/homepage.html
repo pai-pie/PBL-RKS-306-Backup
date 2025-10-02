@@ -11,9 +11,7 @@
   <!-- Navbar -->
   <nav>
     <div class="logo">GuardianTix</div>
-    <ul>
-      <li><a href="{{ url_for('homepage') }}">Home</a></li>
-    </ul>
+
     <div id="authSection" class="user-info">
       {% if session.get('username') %}
         Halo, {{ session['username'] }} |
@@ -29,10 +27,9 @@
 
  <!-- hero --> 
   <section class="hero">
-    <h1>GuardianTix</h1>
+    <h1>Reality Club</h1>
     <p>
-      Discover magical concert experiences that will enchant your soul. <br>
-      Book your tickets to extraordinary musical adventures.
+     one night, one story, endless memories.
     </p>
 
     {% if session.get('username') %}
@@ -45,13 +42,12 @@
 
   <!-- World Tour -->
   <section>
-    <h2>Reality Club – Indonesia Tour 2025</h2>
-    <p>The Mystic Symphony World Tour<br>by PBL RKS 306</p>
+    <h2>Indonesia Tour 2025</h2>
+    <p>Reality Club: A night to rememberr<br>by PBL RKS 306</p>
   </section>
 
   <!-- Main Event Highlight -->
   <section>
-    <h2>Now On Tour</h2>
     <div class="cities" 
         style="display: grid; grid-template-columns: repeat(2, 1fr); 
                 gap: 20px; max-width: 1200px; margin: 0 auto;">

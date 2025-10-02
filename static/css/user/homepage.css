@@ -2,8 +2,7 @@ body {
   margin: 0; 
   font-family: 'Georgia', serif; 
   color: #FDF6E3; 
-  background-image: linear-gradient(rgba(46, 42, 48, 0.85), rgba(26, 26, 46, 0.9)), 
-                  url('../images/hero-concert-hall.jpg');
+  background-image: linear-gradient(rgba(46, 42, 48, 0.85), rgba(26, 26, 46, 0.9));
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -37,7 +36,9 @@ nav a:hover { color: #C8A2C8; }
   padding: 100px 20px;
   text-align: center;
   color: #fff;
-  background: url("/static/images/rc.png") no-repeat center center/cover; /* taruh di static/css/user/homepage.css → ../images/hero-bg.jpg */
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)),
+    url("/static/images/rc.png") no-repeat center center/cover;
 }
 
 .hero .overlay {
@@ -54,16 +55,26 @@ nav a:hover { color: #C8A2C8; }
 
 .hero h1 {
   color: #FFD700; /* pakai emas biar standout */
-  font-size: 3em;
+  font-size: 3.5em;
   margin-bottom: 20px;
   text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+  text-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.9),
+    0 0 25px rgba(255, 215, 0, 0.6),
+    0 0 40px rgba(255, 215, 0, 0.3);
+  font-weight: 900;
+
 }
 
 .hero p,
 .hero .welcome-message {
   color: #f1f1f1;
   font-size: 1.2em;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(0, 0, 0, 0.6);
+  font-weight: 700;
+
 }
 
 .btn { 
@@ -140,10 +151,11 @@ section h2 {
   color: #FFD700;
   margin-bottom: 20px;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  font-size: 2em;
 }
 section p {
-  color: #C8A2C8;
-  font-size: 1.1em;
+  color: #fff;
+  font-size: 1.5em;
 }
 
 /* Rating Stars */
