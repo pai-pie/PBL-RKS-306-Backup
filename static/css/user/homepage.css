@@ -74,13 +74,19 @@ nav a:hover { color: #C8A2C8; }
   background: #C8A2C8;
   color: #2E2A30;
 }
-.cities { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; }
+.cities { 
+  display: flex; 
+  justify-content: center; 
+  gap: 50px; 
+  flex-wrap: wrap;
+
+}
 .city-card { 
+  margin: 0;
+  border: 2px solid #C8A2C8; 
+  box-shadow: 0 0 10px rgba(200, 162, 200, 0.5);
+  border-radius: 12px;
   background: linear-gradient(145deg, #1a1a2e, #2E2A30); 
-  padding: 25px; 
-  border-radius: 12px; 
-  width: 280px; 
-  border: 2px solid #C8A2C8;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s, box-shadow 0.3s;
 }
