@@ -66,9 +66,13 @@ def concert():
 
 @app.route("/account")
 def account():
-    if "username" not in session:   # kalau belum login, redirect ke login
+    if "username" not in session:
         return redirect(url_for("login"))
-    return render_template("user/account.html", username=session["username"])
+    return render_template(
+        "user/account.html",
+        username=session["username"],
+        email=session.get("email", "unknown")
+    )
 
 
 @app.route("/payment")

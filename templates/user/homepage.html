@@ -12,7 +12,7 @@
   <nav>
     <div class="logo">GuardianTix</div>
     <ul>
-      <li></li>
+      <li><a href="{{ url_for('homepage') }}">Home</a></li>
     </ul>
     <div id="authSection" class="user-info">
       {% if session.get('username') %}

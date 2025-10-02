@@ -3,127 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Account - GuardianTix</title>
+  <title>My Account - Guardiantix</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/user/account.css') }}">
 </head>
 <body>
-
-  <!-- Navbar -->
-  <nav>
+  <!-- NAVBAR -->
+  <header class="navbar">
     <div class="logo">GuardianTix</div>
-    <ul>
-      <li><a href="{{ url_for('homepage') }}">Home</a></li>
-      <li><a href="{{ url_for('concert') }}">Concerts</a></li>
-      <li><a href="{{ url_for('account') }}">My Account</a></li>
-    </ul>
-    <div id="authSection">
-      {% if session.get('username') %}
-        Halo, {{ session['username'] }} |
-        <a href="{{ url_for('logout') }}">Logout</a>
-      {% endif %}
+    <nav>
+      <a href="{{ url_for('homepage') }}">Home</a>
+  
+    </nav>
+    <div class="user-info">
+      Hello, {{ username }} | 
+      <a href="{{ url_for('account') }}">My Account</a> | 
+      <a href="{{ url_for('logout') }}">Logout</a>
     </div>
-  </nav>
+  </header>
 
-  <div class="account-container">
-    <!-- Welcome Section -->
-    <div class="welcome-section">
-      <h1 id="welcomeTitle">✨ Your Magical Account ✨</h1>
-      <p id="welcomeSubtitle">Manage your tickets, profile, and magical preferences</p>
-      
-      <div class="stats-grid">
-        <div class="stat-item">
-          <span class="stat-number" id="totalTickets">0</span>
-          <span class="stat-label">Total Tickets</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number" id="upcomingEvents">0</span>
-          <span class="stat-label">Upcoming Events</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number" id="memberSince">2024</span>
-          <span class="stat-label">Member Since</span>
-        </div>
-      </div>
+  <!-- WELCOME CARD -->
+  <section class="welcome-card">
+    <h1>✨ Welcome, {{ username }}! ✨</h1>
+    <p>Your magical journey began on September 15, 2024</p>
+    <div class="stats">
+      <div class="stat-box"><span>2</span><br>Total Tickets</div>
+      <div class="stat-box"><span>0</span><br>Upcoming Events</div>
+      <div class="stat-box"><span>2024</span><br>Member Since</div>
+    </div>
+  </section>
+
+  <!-- PROFILE + TICKETS -->
+  <section class="main-content">
+    <div class="profile-card">
+      <h2>🧙 Profile Information</h2>
+      <p><b>Name:</b> {{ username }}</p>
+      <p><b>Owl Post Address:</b> {{ email }}</p>
+      <p><b>Member Since:</b> September 15, 2024</p>
+      <p><b>Magical Status:</b> Enchanted Member</p>
+      <button class="btn">Edit Profile</button>
     </div>
 
-    <!-- Account Grid -->
-    <div class="account-grid">
-      <!-- Profile Information -->
-      <div class="account-card">
-        <h3>🧙‍♂️ Profile Information</h3>
-        <div class="profile-info">
-          <div class="info-item">
-            <span class="info-label">Wizard Name</span>
-            <span class="info-value">{{ username }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Owl Post Address</span>
-            <span class="info-value">{{ session.get('email', 'unknown') }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Member Since</span>
-            <span class="info-value">2025</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Magical Status</span>
-            <span class="info-value">✨ Enchanted Member</span>
-          </div>
-        </div>
-        <button class="btn" onclick="openEditModal()">Edit Profile</button>
+    <div class="tickets-card">
+      <h2>🎟 My Tickets</h2>
+      <div class="ticket">
+        <b>MAGIC-001</b><br>
+        VIP - The Mystic Symphony World Tour<br>
+        December 15, 2024 | Jakarta Convention Center<br>
+        <button class="btn btn-download">Download Ticket</button>
       </div>
-
-      <!-- My Tickets -->
-      <div class="account-card">
-        <h3>🎫 My Tickets</h3>
-        <div id="ticketsList">
-          <div class="no-tickets">No tickets purchased yet</div>
-        </div>
-        <a href="{{ url_for('concert') }}" class="btn btn-secondary">Browse Events</a>
+      <div class="ticket">
+        <b>MAGIC-002</b><br>
+        Premium - The Mystic Symphony World Tour<br>
+        December 18, 2024 | Bandung Convention Hall<br>
+        <button class="btn btn-download">Download Ticket</button>
       </div>
-
-      <!-- Account Actions -->
-      <div class="account-card">
-        <h3>⚡ Quick Actions</h3>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <button class="btn" onclick="downloadAllTickets()">Download All Tickets</button>
-          <button class="btn btn-secondary" onclick="viewPaymentHistory()">Payment History</button>
-          <button class="btn" onclick="changePassword()">Change Secret Spell</button>
-          <button class="btn btn-secondary" onclick="contactSupport()">Contact Owl Post</button>
-        </div>
-      </div>
+   
     </div>
-  </div>
+  </section>
 
-  <!-- Footer -->
+
+  <!-- FOOTER -->
   <footer>
-    <h2 style="color: #FFD700;">Need Magical Assistance?</h2>
-    <div class="contact-item">
-      <p>Owl Post Hours: Monday - Friday, 09:00 - 17:00</p>
-      <p>📞 <a href="tel:+62211234567">+62 21-1234-567</a></p>
-      <p>✉️ <a href="mailto:info@guardiantix.com">info@guardiantix.com</a></p>
-    </div>
-    <p style="margin-top:20px; color: #C8A2C8;">© 2024 GuardianTix — All rights reserved.</p>
+    <p>Need Magical Assistance?<br>
+    Owl Post Hours: Monday - Friday, 09:00 - 17:00</p>
+    <p>📞 <a href="tel:+621234567">+62 123 4567</a> | 
+       📧 <a href="mailto:support@guardiantix.com">support@guardiantix.com</a></p>
+    <p>© 2024 GuardianTix — All rights reserved.</p>
   </footer>
-
-  <!-- Edit Profile Modal -->
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeEditModal()">&times;</span>
-      <h2 style="color: #FFD700;">Edit Magical Profile</h2>
-      
-      <form id="editForm">
-        <input type="text" id="editName" placeholder="Wizard Name" required>
-        <input type="email" id="editEmail" placeholder="Owl Post Address" required>
-        <input type="text" id="editPhone" placeholder="Crystal Ball Number">
-        
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-          <button type="button" class="btn" onclick="saveProfile()">Save Changes</button>
-          <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script src="{{ url_for('static', filename='script/user/account.js') }}"></script>
 </body>
 </html>
