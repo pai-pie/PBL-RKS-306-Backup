@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GuardianTix</title>
-  <link rel="stylesheet" href="/static/css/user/homepage.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user/homepage.css') }}">
 </head>
 <body>
 
@@ -12,19 +12,32 @@
   <nav>
     <div class="logo">GuardianTix</div>
     <ul>
-      <li><a href="homepage.html">Home</a></li>
-      <li><a href="concert.html">Concerts</a></li>
+      <li><a href="{{ url_for('homepage') }}">Home</a></li>
+      <li><a href="{{ url_for('concert') }}">Concerts</a></li>
     </ul>
     <div id="authSection" class="user-info">
-      <!-- Will be populated by JavaScript -->
+      {% if session.get('username') %}
+        Halo, {{ session['username'] }} |
+        <a href="{{ url_for('account') }}">My Account</a> |
+        <a href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a> |
+        <a href="{{ url_for('register') }}">Register</a>
+      {% endif %}
     </div>
   </nav>
 
   <!-- Hero Section -->
   <section class="hero">
     <h1>GuardianTix</h1>
-    <p>Discover magical concert experiences that will enchant your soul. <br>Book your tickets to extraordinary musical adventures.</p>
-    <div class="welcome-message" id="welcomeMessage"></div>
+    <p>Discover magical concert experiences that will enchant your soul. <br>
+       Book your tickets to extraordinary musical adventures.</p>
+
+    {% if session.get('username') %}
+      <div class="welcome-message">
+        Welcome back, {{ session['username'] }}! Ready for some magical concerts?
+      </div>
+    {% endif %}
   </section>
 
   <!-- World Tour -->
@@ -41,10 +54,12 @@
         <h3 style="font-size: 1.8em;">The Mystic Symphony</h3>
         <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
         <div class="rating" style="font-size: 1.3em;">Sold in 3 Cities</div>
-        <p style="margin: 20px 0; font-size: 1.1em;">The musical phenomenon that's taking the world by storm</p>
+        <p style="margin: 20px 0; font-size: 1.1em;">
+          The musical phenomenon that's taking the world by storm
+        </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-          <a href="concert.html" class="btn btn-primary">Find Tickets</a>
-          <a href="concert.html" class="btn btn-secondary">Tour Dates</a>
+          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+          <a href="{{ url_for('concert') }}" class="btn btn-secondary">Tour Dates</a>
         </div>
       </div>
     </div>
@@ -57,17 +72,17 @@
       <div class="city-card">
         <h3>📅 View Schedule</h3>
         <p>See all tour dates and venues</p>
-        <a href="concert.html" class="btn btn-secondary">View Calendar</a>
+        <a href="{{ url_for('concert') }}" class="btn btn-secondary">View Calendar</a>
       </div>
       <div class="city-card">
         <h3>🎫 Ticket Info</h3>
         <p>VIP, Premium & Standard tickets</p>
-        <a href="concert.html" class="btn btn-secondary">Learn More</a>
+        <a href="{{ url_for('concert') }}" class="btn btn-secondary">Learn More</a>
       </div>
       <div class="city-card">
         <h3>📍 Venues</h3>
         <p>Concert locations & directions</p>
-        <a href="concert.html" class="btn btn-secondary">View Map</a>
+        <a href="{{ url_for('concert') }}" class="btn btn-secondary">View Map</a>
       </div>
     </div>
   </section>
@@ -109,7 +124,6 @@
     </div>
   </div>
 
-  <script src="/static/script/auth/login.js"></script>
-  <script src="/static/script/user/homepage.js"></script>
+  <script src="{{ url_for('static', filename='script/user/homepage.js') }}"></script>
 </body>
 </html>

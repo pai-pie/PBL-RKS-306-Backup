@@ -8,17 +8,17 @@ function updateNavbar() {
     // Show welcome message
     welcomeMessage.textContent = `Welcome back, ${user.username}! Ready for some magical concerts?`;
     
-    // Update auth section - My Account HANYA di sini, tidak double
+    // Update auth section
     authSection.innerHTML = `
       <span>Hello, ${user.username}!</span> | 
-      <a href="account.html">My Account</a> | 
+      <a href="/account">My Account</a> | 
       <a href="#" onclick="logout()">Logout</a>
     `;
   } else {
     // Show login/register links
     authSection.innerHTML = `
-      <a href="login.html">Login</a> | 
-      <a href="register.html">Register</a>
+      <a href="/login">Login</a> | 
+      <a href="/register">Register</a>
     `;
     welcomeMessage.textContent = '';
   }
@@ -27,6 +27,7 @@ function updateNavbar() {
 function logout() {
   if (confirm('Are you sure you want to log out?')) {
     auth.logout();
+    window.location.href = "/login"; // redirect ke login page Flask
   }
 }
 
@@ -34,7 +35,7 @@ function logout() {
 document.addEventListener('DOMContentLoaded', function() {
   // Check authentication on page load
   if (!auth.isLoggedIn()) {
-    window.location.href = 'login.html';
+    window.location.href = '/login'; // redirect kalau belum login
     return;
   }
   
@@ -72,7 +73,7 @@ class BookingModal {
     // Check if user is logged in
     if (!auth.isLoggedIn()) {
       alert('Please login first to book tickets!');
-      window.location.href = 'login.html';
+      window.location.href = '/login'; // ganti ke route Flask
       return;
     }
 
@@ -111,7 +112,8 @@ class BookingModal {
   confirm(){
     if(this.selectedTicket && this.selectedCity){
       const ticket = new Ticket(this.selectedCity, this.selectedTicket, this.getPrice(this.selectedTicket));
-      window.location.href = `payment.html?city=${encodeURIComponent(this.selectedCity)}&ticket=${encodeURIComponent(ticket.type)}&price=${encodeURIComponent(ticket.price)}`;
+      // redirect ke route Flask payment
+      window.location.href = `/payment?city=${encodeURIComponent(this.selectedCity)}&ticket=${encodeURIComponent(ticket.type)}&price=${encodeURIComponent(ticket.price)}`;
     } else {
       alert('Please select a ticket type first.');
     }

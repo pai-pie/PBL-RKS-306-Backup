@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Account - GuardianTix</title>
-  <link rel="stylesheet" href="/static/css/user/account.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user/account.css') }}">
 </head>
 <body>
 
@@ -12,11 +12,16 @@
   <nav>
     <div class="logo">GuardianTix</div>
     <ul>
-      <li><a href="{{ url_for('user_home') }}">Home</a></li>
-      <li><a href="#">Concerts</a></li>
-      <li><a href="{{ url_for('admin_home') }}">My Account</a></li>
+      <li><a href="{{ url_for('homepage') }}">Home</a></li>
+      <li><a href="{{ url_for('concert') }}">Concerts</a></li>
+      <li><a href="{{ url_for('account') }}">My Account</a></li>
     </ul>
-    <div id="authSection"></div>
+    <div id="authSection">
+      {% if session.get('username') %}
+        Halo, {{ session['username'] }} |
+        <a href="{{ url_for('logout') }}">Logout</a>
+      {% endif %}
+    </div>
   </nav>
 
   <div class="account-container">
@@ -49,15 +54,15 @@
         <div class="profile-info">
           <div class="info-item">
             <span class="info-label">Wizard Name</span>
-            <span class="info-value" id="userName">Loading...</span>
+            <span class="info-value">{{ username }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Owl Post Address</span>
-            <span class="info-value" id="userEmail">Loading...</span>
+            <span class="info-value">{{ session.get('email', 'unknown') }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Member Since</span>
-            <span class="info-value" id="joinDate">Loading...</span>
+            <span class="info-value">2025</span>
           </div>
           <div class="info-item">
             <span class="info-label">Magical Status</span>
@@ -73,7 +78,7 @@
         <div id="ticketsList">
           <div class="no-tickets">No tickets purchased yet</div>
         </div>
-        <a href="{{ url_for('user_home') }}" class="btn btn-secondary">Browse Events</a>
+        <a href="{{ url_for('concert') }}" class="btn btn-secondary">Browse Events</a>
       </div>
 
       <!-- Account Actions -->
@@ -119,6 +124,6 @@
     </div>
   </div>
 
-  <script src="/static/script/user/account.js"></script>
+  <script src="{{ url_for('static', filename='script/user/account.js') }}"></script>
 </body>
 </html>
