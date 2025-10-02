@@ -26,11 +26,13 @@
     </div>
   </nav>
 
-  <!-- Hero Section -->
+ <!-- hero --> 
   <section class="hero">
     <h1>GuardianTix</h1>
-    <p>Discover magical concert experiences that will enchant your soul. <br>
-       Book your tickets to extraordinary musical adventures.</p>
+    <p>
+      Discover magical concert experiences that will enchant your soul. <br>
+      Book your tickets to extraordinary musical adventures.
+    </p>
 
     {% if session.get('username') %}
       <div class="welcome-message">
@@ -39,9 +41,10 @@
     {% endif %}
   </section>
 
+
   <!-- World Tour -->
   <section>
-    <h2>World Tour 2025</h2>
+    <h2>Reality Club – Indonesia Tour 2025</h2>
     <p>The Mystic Symphony World Tour<br>by PBL RKS 306</p>
   </section>
 
@@ -54,12 +57,15 @@
 
       <!-- Card 1 -->
       <div class="city-card" style="text-align: center; padding: 30px;">
-        <h3 style="font-size: 1.8em;">The Mystic Symphony</h3>
-        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
-        <div class="rating" style="font-size: 1.3em;">Sold in 3 Cities</div>
+        <h3 style="font-size: 1.8em;">Bali</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">Garuda Wisnu Kencana</p>
+
         <p style="margin: 20px 0; font-size: 1.1em;">
-          The musical phenomenon that's taking the world by storm
+          🗓️ Saturday, 10 November 2025 <br>
+          ⏰ 19.30 wib
         </p>
+        <div class="rating" style="font-size: 1.3em;">Sold 750 tickets</div>
+
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
           <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
 
@@ -68,12 +74,13 @@
 
       <!-- Card 2 -->
       <div class="city-card" style="text-align: center; padding: 30px;">
-        <h3 style="font-size: 1.8em;">Symphony Nights</h3>
-        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
-        <div class="rating" style="font-size: 1.3em;">Sold in 2 Cities</div>
+        <h3 style="font-size: 1.8em;">Jakarta</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">Jakarta International Stadium</p>
         <p style="margin: 20px 0; font-size: 1.1em;">
-          Experience a night of pure musical magic
+          🗓️ Saturday, 25 November 2025 <br>
+          ⏰ 18.30 wita
         </p>
+        <div class="rating" style="font-size: 1.3em;">Sold 550 tickets</div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
           <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
         </div>
@@ -81,11 +88,12 @@
 
       <!-- Card 3 -->
       <div class="city-card" style="text-align: center; padding: 30px;">
-        <h3 style="font-size: 1.8em;">Melody Dreams</h3>
-        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
-        <div class="rating" style="font-size: 1.3em;">Sold in 4 Cities</div>
+        <h3 style="font-size: 1.8em;">Makassar</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">Trans Studio Mall</p>
+        <div class="rating" style="font-size: 1.3em;">Sold 450 tickets</div>
         <p style="margin: 20px 0; font-size: 1.1em;">
-          Let the melodies take you on a journey
+          🗓️ Saturday, 8 December 2025 <br>
+          ⏰ 18.30 wita
         </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
          <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
@@ -94,12 +102,13 @@
 
       <!-- Card 4 -->
       <div class="city-card" style="text-align: center; padding: 30px;">
-        <h3 style="font-size: 1.8em;">Harmony Rising</h3>
-        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
-        <div class="rating" style="font-size: 1.3em;">Sold in 5 Cities</div>
+        <h3 style="font-size: 1.8em;">Pekanbaru</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">Lanud Roesmin Nurjadin</p>
         <p style="margin: 20px 0; font-size: 1.1em;">
-          A harmony of sound that connects the world
+          🗓️ Saturday, 20 December 2025 <br>
+          ⏰ 19.30 wib
         </p>
+        <div class="rating" style="font-size: 1.3em;">Sold 300  tickets</div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
           <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
         </div>
