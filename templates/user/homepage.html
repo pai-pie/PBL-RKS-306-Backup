@@ -17,6 +17,7 @@
     <div id="authSection" class="user-info">
       {% if session.get('username') %}
         Halo, {{ session['username'] }} |
+        <a href="{{ url_for('homepage') }}">Home</a> |
         <a href="{{ url_for('account') }}">My Account</a> |
         <a href="{{ url_for('logout') }}">Logout</a>
       {% else %}
@@ -42,14 +43,18 @@
   <!-- World Tour -->
   <section>
     <h2>World Tour 2025</h2>
-    <p>The Mystic Symphony World Tour<br>by Ethereal Orchestra</p>
+    <p>The Mystic Symphony World Tour<br>by PBL RKS 306</p>
   </section>
 
   <!-- Main Event Highlight -->
   <section>
     <h2>Now On Tour</h2>
-    <div class="cities">
-      <div class="city-card" style="width: 450px; margin: 0 auto; text-align: center;">
+    <div class="cities" 
+        style="display: grid; grid-template-columns: repeat(2, 1fr); 
+                gap: 20px; max-width: 1200px; margin: 0 auto;">
+
+      <!-- Card 1 -->
+      <div class="city-card" style="text-align: center; padding: 30px;">
         <h3 style="font-size: 1.8em;">The Mystic Symphony</h3>
         <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
         <div class="rating" style="font-size: 1.3em;">Sold in 3 Cities</div>
@@ -58,31 +63,48 @@
         </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
           <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
-          <a href="{{ url_for('concert') }}" class="btn btn-secondary">Tour Dates</a>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Quick Access -->
-  <section>
-    <h2>Quick Access</h2>
-    <div class="cities">
-      <div class="city-card">
-        <h3>📅 View Schedule</h3>
-        <p>See all tour dates and venues</p>
-        <a href="{{ url_for('concert') }}" class="btn btn-secondary">View Calendar</a>
+      <!-- Card 2 -->
+      <div class="city-card" style="text-align: center; padding: 30px;">
+        <h3 style="font-size: 1.8em;">Symphony Nights</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
+        <div class="rating" style="font-size: 1.3em;">Sold in 2 Cities</div>
+        <p style="margin: 20px 0; font-size: 1.1em;">
+          Experience a night of pure musical magic
+        </p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
+          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+        </div>
       </div>
-      <div class="city-card">
-        <h3>🎫 Ticket Info</h3>
-        <p>VIP, Premium & Standard tickets</p>
-        <a href="{{ url_for('concert') }}" class="btn btn-secondary">Learn More</a>
+
+      <!-- Card 3 -->
+      <div class="city-card" style="text-align: center; padding: 30px;">
+        <h3 style="font-size: 1.8em;">Melody Dreams</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
+        <div class="rating" style="font-size: 1.3em;">Sold in 4 Cities</div>
+        <p style="margin: 20px 0; font-size: 1.1em;">
+          Let the melodies take you on a journey
+        </p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
+          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+          </div>
       </div>
-      <div class="city-card">
-        <h3>📍 Venues</h3>
-        <p>Concert locations & directions</p>
-        <a href="{{ url_for('concert') }}" class="btn btn-secondary">View Map</a>
-      </div>
+
+      <!-- Card 4 -->
+      <div class="city-card" style="text-align: center; padding: 30px;">
+        <h3 style="font-size: 1.8em;">Harmony Rising</h3>
+        <p style="font-size: 1.3em; color: #C8A2C8;">World Tour 2024</p>
+        <div class="rating" style="font-size: 1.3em;">Sold in 5 Cities</div>
+        <p style="margin: 20px 0; font-size: 1.1em;">
+          A harmony of sound that connects the world
+        </p>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
+          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+        </div>
+      </div> <!-- ✅ tutup div card 4 -->
+
     </div>
   </section>
 
@@ -96,6 +118,7 @@
     </div>
     <p style="margin-top:20px; color: #C8A2C8;">© 2024 GuardianTix — All rights reserved.</p>
   </footer>
+
 
   <!-- Modal -->
   <div id="ticketModal" class="modal">
