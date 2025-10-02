@@ -277,3 +277,74 @@ section p {
   align-items: center;
   gap: 15px;
 }
+
+
+/* Background gelap modal */
+.modal {
+  display: none; /* awalnya hidden */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.7);
+}
+
+/* Konten modal */
+.modal-content {
+  background-color: #1a1a2e;
+  margin: 5% auto;
+  padding: 30px;
+  border: 2px solid #FFD700;
+  width: 400px;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Tombol close */
+.close {
+  color: #FFD700;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Ticket options */
+.ticket-card {
+  border: 2px solid #C8A2C8;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.ticket-card:hover {
+  background: rgba(200, 162, 200, 0.1);
+  border-color: #FFD700;
+}
+.ticket-card.selected {
+  border-color: #FFD700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+/* Button */
+#selectBtn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #FFD700;
+  color: #1a1a2e;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+#selectBtn:hover {
+  background-color: #C8A2C8;
+  color: white;
+}
