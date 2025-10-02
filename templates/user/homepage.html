@@ -13,7 +13,6 @@
     <div class="logo">GuardianTix</div>
     <ul>
       <li><a href="{{ url_for('homepage') }}">Home</a></li>
-      <li><a href="{{ url_for('concert') }}">Concerts</a></li>
     </ul>
     <div id="authSection" class="user-info">
       {% if session.get('username') %}
