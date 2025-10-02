@@ -12,7 +12,6 @@
   <nav>
     <div class="logo">GuardianTix</div>
     <ul>
-      <li><a href="{{ url_for('homepage') }}">Home</a></li>
     </ul>
     <div id="authSection" class="user-info">
       {% if session.get('username') %}
@@ -62,7 +61,8 @@
           The musical phenomenon that's taking the world by storm
         </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+          <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
+
         </div>
       </div>
 
@@ -75,7 +75,7 @@
           Experience a night of pure musical magic
         </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+          <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
         </div>
       </div>
 
@@ -88,7 +88,7 @@
           Let the melodies take you on a journey
         </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+         <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
           </div>
       </div>
 
@@ -101,7 +101,7 @@
           A harmony of sound that connects the world
         </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-          <a href="{{ url_for('concert') }}" class="btn btn-primary">Find Tickets</a>
+          <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
         </div>
       </div> <!-- ✅ tutup div card 4 -->
 
