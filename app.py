@@ -14,6 +14,7 @@ def homepage():
         return render_template("user/homepage.html", username=session["username"])
     return redirect(url_for("login"))
 
+
 # --- REGISTER ---
 @app.route("/register", methods=["GET", "POST"])
 def register():

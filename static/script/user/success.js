@@ -77,7 +77,7 @@ May your musical journey be truly magical! ✨
       button.textContent = originalText;
       button.disabled = false;
       
-      // Show success message
+      
       const celebration = document.querySelector('.celebration');
       celebration.textContent = '✨ E-Ticket scroll successfully downloaded!';
       celebration.style.color = '#FFD700';

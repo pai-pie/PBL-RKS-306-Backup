@@ -92,7 +92,7 @@ function renderConcerts(filteredConcerts = concerts) {
   });
 }
 
-// Filter Concerts
+
 function filterConcerts() {
   const city = document.getElementById('cityFilter').value;
   const month = document.getElementById('monthFilter').value;

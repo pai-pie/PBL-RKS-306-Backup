@@ -21,7 +21,7 @@ class Payment {
 
   confirm() {
     alert("✅ Payment completed successfully! Your ticket has been reserved.");
-    window.location.href = "/"; // balik ke homepage setelah bayar
+    window.location.href = "/"; 
   }
 }
 

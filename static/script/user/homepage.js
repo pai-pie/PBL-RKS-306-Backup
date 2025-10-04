@@ -12,7 +12,7 @@ class BookingModal {
             this.close();
         };
 
-        // Tutup modal kalau klik di luar modal
+        
         window.onclick = (event) => {
             if (event.target === this.modal) {
                 this.close();

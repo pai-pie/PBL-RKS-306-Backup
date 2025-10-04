@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
-  // Fill profile info
+ 
   document.getElementById("userName").textContent = currentUser.username;
   document.getElementById("userEmail").textContent = currentUser.email;
   document.getElementById("joinDate").textContent = currentUser.joinDate || "Unknown";
