@@ -18,7 +18,7 @@ class Ticket {
 
   showDetails(){
     document.getElementById("ticketDetails").innerHTML = 
-      `Ticket Type: <b>${this.ticketType}</b><br>Payment Method: <b>${this.method}</b>`;
+      `Ticket Type: <b>${this.ticketType}</b>`;
     document.getElementById("bookingCode").innerText = `Enchantment Code: ${this.bookingCode}`;
   }
 
@@ -90,7 +90,7 @@ May your musical journey be truly magical! ✨
     document.body.style.transition = 'opacity 0.5s ease';
     
     setTimeout(() => {
-      window.location.href = "homepage.html";
+      window.location.href = "homepage";
     }, 500);
   }
 }
