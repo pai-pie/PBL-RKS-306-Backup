@@ -8,21 +8,47 @@
 <body>
   <div class="register-container">
     <h1>Register</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <form method="POST" action="{{ url_for('register') }}" autocomplete="off">
       <label for="username">Username</label>
-      <input type="text" name="username" id="username" required autocomplete="off">
+      <input type="text" name="username" id="username" required autocomplete="off" placeholder="Enter your username">
 
       <label for="email">Email</label>
-      <input type="email" name="email" id="email" required autocomplete="off">
+      <input type="email" name="email" id="email" required autocomplete="off" placeholder="your@email.com">
 
       <label for="password">Password</label>
-      <input type="password" name="password" id="password" required autocomplete="new-password">
+      <input type="password" name="password" id="password" required autocomplete="new-password" placeholder="Enter your password">
+
+      <!-- TAMBAHKAN INI -->
+      <label for="confirm_password">Confirm Password</label>
+      <input type="password" name="confirm_password" id="confirm_password" required autocomplete="new-password" placeholder="Confirm your password">
 
       <button type="submit">Sign Up</button>
     </form>
-    
 
     <p>Sudah punya akun? <a href="{{ url_for('login') }}">Login</a></p>
   </div>
+
+  <script>
+    // Validasi client-side untuk confirm password
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+      
+      if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+      }
+    });
+  </script>
 </body>
 </html>

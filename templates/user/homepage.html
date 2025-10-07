@@ -8,7 +8,17 @@
 </head>
 <body>
 
- 
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   <nav>
     <div class="logo">GuardianTix</div>
 
@@ -43,7 +53,7 @@
   <!-- World Tour -->
   <section>
     <h2>Indonesia Tour 2025</h2>
-    <p>Reality Club: A night to rememberr<br>by PBL RKS 306</p>
+    <p>Reality Club: A night to remember<br>by PBL RKS 306</p>
   </section>
 
   <!-- Main Event Highlight -->
@@ -64,8 +74,7 @@
         <div class="rating" style="font-size: 1.3em;">Sold 750 tickets</div>
 
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-          <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
-
+          <a href="javascript:void(0)" onclick="bookingModal.open('Bali')" class="btn btn-primary">Find Tickets</a>
         </div>
       </div>
 
@@ -93,8 +102,8 @@
           ⏰ 18.30 wita
         </p>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-         <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
-          </div>
+          <a href="javascript:void(0)" onclick="bookingModal.open('Makassar')" class="btn btn-primary">Find Tickets</a>
+        </div>
       </div>
 
       <!-- Card 4 -->
@@ -105,11 +114,11 @@
           🗓️ Saturday, 20 December 2025 <br>
           ⏰ 19.30 wib
         </p>
-        <div class="rating" style="font-size: 1.3em;">Sold 300  tickets</div>
+        <div class="rating" style="font-size: 1.3em;">Sold 300 tickets</div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-          <a href="javascript:void(0)" onclick="bookingModal.open('Jakarta')" class="btn btn-primary">Find Tickets</a>
+          <a href="javascript:void(0)" onclick="bookingModal.open('Pekanbaru')" class="btn btn-primary">Find Tickets</a>
         </div>
-      </div> <!-- ✅ tutup div card 4 -->
+      </div>
 
     </div>
   </section>
@@ -124,7 +133,6 @@
     </div>
     <p style="margin-top:20px; color: #C8A2C8;">© 2024 GuardianTix — All rights reserved.</p>
   </footer>
-
 
   <!-- Modal -->
   <div id="ticketModal" class="modal">

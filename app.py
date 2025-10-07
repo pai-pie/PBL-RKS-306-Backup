@@ -1,155 +1,282 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
-# 🔒 SECRET KEY otomatis berubah setiap restart → session lama langsung invalid
+# 🔒 SECRET KEY 
 app.secret_key = os.urandom(24)
 
-# Simpan user sementara (sementara dict, seharusnya database)
-users = {}
+# ==========================
+#       DATABASE SETUP (FIXED)
+# ==========================
 
-# Kredensial admin tetap
-ADMIN_EMAIL = "admin@guardiantix.com"
-ADMIN_PASSWORD = "admin123"
+# FORCE menggunakan path yang absolut dan sama
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_PATH = os.path.join(BASE_DIR, 'guardiantix.db')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DATABASE_PATH}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+print(f"📍 Database location: {DATABASE_PATH}")  # DEBUG
 
 # ==========================
-#        HOMEPAGE
+#       MODEL USER
 # ==========================
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), default='user')
+    phone = db.Column(db.String(20))
+    join_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+# ==========================
+#       DATABASE INITIALIZATION
+# ==========================
+with app.app_context():
+    try:
+        print("🔄 Creating database tables...")
+        db.create_all()
+        print("✅ Database tables created successfully!")
+        
+        # DEBUG: Cek file database
+        import os
+        if os.path.exists('guardiantix.db'):
+            size = os.path.getsize('guardiantix.db')
+            print(f"📁 Database file: {os.path.abspath('guardiantix.db')}")
+            print(f"📊 Database size: {size} bytes")
+        else:
+            print("❌ Database file not found!")
+        
+        # Buat admin user jika belum ada
+        admin = User.query.filter_by(email='admin@guardiantix.com').first()
+        if not admin:
+            admin = User(
+                username='System Admin',
+                email='admin@guardiantix.com',
+                role='admin'
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+            print("✅ Admin user created!")
+        
+        # Test query
+        users_count = User.query.count()
+        print(f"📊 Total users in database: {users_count}")
+        
+        # DEBUG: Tampilkan semua user
+        users = User.query.all()
+        print("👥 Users in database:")
+        for user in users:
+            print(f"   - {user.id}: {user.username} ({user.email})")
+        
+    except Exception as e:
+        print(f"❌ Database error: {e}")
+
+# ==========================
+#        ROUTES
+# ==========================
+
 @app.route("/")
 @app.route("/homepage")
 def homepage():
+    print(f"🏠 Homepage access - Session: {dict(session)}")  # DEBUG
+    
     # Jika belum login → ke halaman login
-    if "username" not in session:
+    if "user_id" not in session:
+        print("❌ No user_id in session - redirect to login")  # DEBUG
         return redirect(url_for("login"))
     
     # Jika login sebagai admin → arahkan ke admin panel
     if session.get("role") == "admin":
+        print("🔧 Admin detected - redirect to admin panel")  # DEBUG
         return redirect(url_for("admin_panel"))
     
     # Jika login sebagai user → tampilkan homepage user
     if session.get("role") == "user":
+        print(f"✅ User {session['username']} accessing homepage")  # DEBUG
         return render_template("user/homepage.html", username=session["username"])
     
     # Jika ada role aneh → hapus session
+    print("🚫 Invalid role - clearing session")  # DEBUG
     session.clear()
     return redirect(url_for("login"))
 
-# ==========================
-#        REGISTER
-# ==========================
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         username = request.form["username"].strip()
         email = request.form["email"].strip()
         password = request.form["password"].strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
 
-        # Cek apakah email sudah terdaftar
-        if email in users:
-            return render_template("user/register.html", error="Email sudah terdaftar!")
+        print(f"🔰 Register attempt: {username} ({email})")  # DEBUG
 
-        # Simpan user baru
-        users[email] = {"username": username, "password": password}
+        # Validasi confirm password
+        if password != confirm_password:
+            flash("Passwords do not match!", "error")
+            print("❌ Password mismatch")  # DEBUG
+            return render_template("user/register.html")
 
-        flash("Registrasi berhasil! Silakan login.", "success")
-        return redirect(url_for("login"))
+        # Cek apakah email sudah terdaftar di DATABASE
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Email already registered!", "error")
+            print(f"❌ Email already exists: {email}")  # DEBUG
+            return render_template("user/register.html")
+
+        # Buat user baru di DATABASE
+        new_user = User(
+            username=username,
+            email=email,
+            role='user'
+        )
+        new_user.set_password(password)
+        
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            print(f"✅ User saved to database - ID: {new_user.id}, Username: {new_user.username}")
+            
+            # VERIFIKASI: Cek lagi dari database
+            verify_user = User.query.get(new_user.id)
+            if verify_user:
+                print(f"✅ Verification passed - User found in DB: {verify_user.username}")
+            else:
+                print("❌ VERIFICATION FAILED - User not found in DB after commit!")
+            
+            # AUTO LOGIN SETELAH REGISTER - SET SESSION
+            session["user_id"] = new_user.id
+            session["username"] = new_user.username
+            session["email"] = new_user.email
+            session["role"] = new_user.role
+            
+            print(f"✅ Session set - user_id: {session['user_id']}")
+            flash("Registration successful! Welcome!", "success")
+            return redirect(url_for("homepage"))
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"❌ DATABASE ERROR: {e}")
+            flash("Registration failed! Please try again.", "error")
+            return render_template("user/register.html")
 
     return render_template("user/register.html")
 
-# ==========================
-#          LOGIN
-# ==========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         identifier = request.form["email"].strip()
         password = request.form["password"].strip()
+        
+        print(f"🔐 Login attempt: {identifier}")
 
         # 🔹 Login sebagai ADMIN
-        if identifier.lower() == ADMIN_EMAIL.lower() and password == ADMIN_PASSWORD:
-            session["username"] = "Admin"
-            session["email"] = ADMIN_EMAIL
-            session["role"] = "admin"
-            flash("Berhasil login sebagai admin!", "success")
+        admin_user = User.query.filter_by(email='admin@guardiantix.com', role='admin').first()
+        if admin_user and admin_user.check_password(password) and identifier.lower() == 'admin@guardiantix.com':
+            print("✅ Admin login successful - redirecting to admin panel")
+            session["user_id"] = admin_user.id
+            session["username"] = admin_user.username
+            session["email"] = admin_user.email
+            session["role"] = admin_user.role
+            flash("Welcome back, Admin!", "success")
             return redirect(url_for("admin_panel"))
 
-        # 🔹 Login sebagai USER (pakai email)
-        if identifier in users and users[identifier]["password"] == password:
-            session["username"] = users[identifier]["username"]
-            session["email"] = identifier
-            session["role"] = "user"
-            flash(f"Selamat datang, {session['username']}!", "success")
+        # 🔹 Login sebagai USER (by email)
+        user_by_email = User.query.filter_by(email=identifier).first()
+        if user_by_email and user_by_email.check_password(password):
+            print("✅ User login by email successful - redirecting to homepage")
+            session["user_id"] = user_by_email.id
+            session["username"] = user_by_email.username
+            session["email"] = user_by_email.email
+            session["role"] = user_by_email.role
+            flash(f"Welcome back, {user_by_email.username}!", "success")
             return redirect(url_for("homepage"))
 
-        # 🔹 Login sebagai USER (pakai username)
-        for email, data in users.items():
-            if data["username"] == identifier and data["password"] == password:
-                session["username"] = data["username"]
-                session["email"] = email
-                session["role"] = "user"
-                flash(f"Selamat datang, {session['username']}!", "success")
-                return redirect(url_for("homepage"))
+        # 🔹 Login sebagai USER (by username)  
+        user_by_username = User.query.filter_by(username=identifier).first()
+        if user_by_username and user_by_username.check_password(password):
+            print("✅ User login by username successful - redirecting to homepage")
+            session["user_id"] = user_by_username.id
+            session["username"] = user_by_username.username
+            session["email"] = user_by_username.email
+            session["role"] = user_by_username.role
+            flash(f"Welcome back, {user_by_username.username}!", "success")
+            return redirect(url_for("homepage"))
 
-        # Jika gagal login
-        flash("Email/Username atau password salah!", "danger")
+        print("❌ Login failed")
+        flash("Invalid email/username or password!", "danger")
         return render_template("user/login.html")
 
     return render_template("user/login.html")
 
-# ==========================
-#          LOGOUT
-# ==========================
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Anda sudah logout.", "info")
+    flash("You have been logged out.", "info")
     return redirect(url_for("login"))
 
-# ==========================
-#        ADMIN PANEL
-# ==========================
 @app.route("/admin")
 def admin_panel():
-    # Cek hanya admin yang bisa masuk
     if session.get("role") != "admin":
-        flash("Anda tidak memiliki akses ke halaman admin!", "danger")
+        flash("Access denied! Admin only.", "danger")
         return redirect(url_for("login"))
     return render_template("adminpanel.html")
 
-# ==========================
-#      HALAMAN USER
-# ==========================
+# Routes user lainnya...
 @app.route("/concert")
 def concert():
-    if "username" not in session or session.get("role") != "user":
+    if "user_id" not in session or session.get("role") != "user":
         return redirect(url_for("login"))
     return render_template("user/concert.html")
 
 @app.route("/account")
 def account():
-    if "username" not in session or session.get("role") != "user":
+    if "user_id" not in session or session.get("role") != "user":
         return redirect(url_for("login"))
-    return render_template(
-        "user/account.html",
-        username=session["username"],
-        email=session["email"]
-    )
+    
+    user = User.query.get(session.get("user_id"))
+    if user:
+        return render_template(
+            "user/account.html",
+            username=user.username,
+            email=user.email,
+            join_date=user.join_date.strftime("%d %B %Y")
+        )
+    else:
+        flash("User not found!", "error")
+        return redirect(url_for("login"))
 
 @app.route("/payment")
 def payment():
-    if "username" not in session or session.get("role") != "user":
+    if "user_id" not in session or session.get("role") != "user":
         return redirect(url_for("login"))
     return render_template("user/payment.html")
 
 @app.route("/success")
 def success():
-    if "username" not in session or session.get("role") != "user":
+    if "user_id" not in session or session.get("role") != "user":
         return redirect(url_for("login"))
     return render_template("user/success.html")
 
-# ==========================
-#        MAIN APP
-# ==========================
 if __name__ == "__main__":
-    app.run(debug=True)
+    print("🚀 Server starting...")
+    print("📊 Database: SQLite (local file)")
+    print("👤 Admin login: admin@guardiantix.com / admin123")
+    app.run(debug=True, port=5000)
