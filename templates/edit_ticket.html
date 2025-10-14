@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Ticket for {{ ticket.event_name }}</title>
+     <style>
+        /* Desain dan Palet Warna Modern (sama seperti form event) */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background-color: #1e1e1e; padding: 40px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); width: 100%; max-width: 500px; }
+        h1 { text-align: center; color: #bb86fc; margin-top: 0; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #b0b0b0; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; background-color: #333; color: #e0e0e0; font-size: 16px; box-sizing: border-box; }
+        input:focus { outline: none; border-color: #bb86fc; }
+        .submit-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background-color: #bb86fc; color: #121212; font-weight: bold; font-size: 16px; cursor: pointer; transition: background-color 0.3s ease; }
+        .submit-btn:hover { background-color: #a062f8; }
+        .back-link { display: block; text-align: center; margin-top: 25px; color: #03dac6; text-decoration: none; font-weight: 500; transition: color 0.3s ease; }
+        .back-link:hover { color: #00b3a4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Ticket: {{ ticket.type_name }}</h1>
+        <form action="{{ url_for('edit_ticket', ticket_id=ticket.id) }}" method="POST">
+            <div class="form-group">
+                <label for="type_name">Ticket Type:</label>
+                <input type="text" id="type_name" name="type_name" value="{{ ticket.type_name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="price">Price (Rp):</label>
+                <input type="number" id="price" name="price" value="{{ ticket.price }}" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="quota">Quota:</label>
+                <input type="number" id="quota" name="quota" value="{{ ticket.quota }}" min="1" required>
+            </div>
+            <button type="submit" class="submit-btn">Update Ticket Type</button>
+        </form>
+        <a href="{{ url_for('manage_tickets', event_id=ticket.event_id) }}" class="back-link">Back to Ticket Management</a>
+    </div>
+</body>
+</html>

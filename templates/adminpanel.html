@@ -4,13 +4,200 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - GuardianTix</title>
-  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Resetting dasar */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Palet Warna Baru */
+    :root {
+      --bg-dark-deep: #121019;
+      --bg-dark-main: #1C1A27;
+      --bg-dark-hover: #242230;
+      --border-color: #2D2A3D;
+      --primary-accent: #7F5AF0;
+      --secondary-accent: #2CB67D;
+      --danger-color: #F25F4C;
+      --text-main: #E0E0E0;
+      --text-light: #A7A9BE;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark-deep);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    .container {
+      display: flex;
+    }
+
+    /* === Sidebar === */
+    .sidebar {
+      width: 250px;
+      background-color: var(--bg-dark-main);
+      padding: 25px 15px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .sidebar h2 {
+      color: var(--primary-accent);
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 1.8em;
+    }
+
+    .sidebar a {
+      color: var(--text-light);
+      text-decoration: none;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      transition: background-color 0.3s, color 0.3s;
+      display: flex;
+      align-items: center;
+    }
+    
+    .sidebar a:hover {
+      background-color: var(--bg-dark-hover);
+      color: #ffffff;
+    }
+
+    .sidebar a.active {
+      background-color: var(--primary-accent);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(127, 90, 240, 0.25);
+    }
+
+    /* === Content Area === */
+    .content {
+      flex-grow: 1;
+      padding: 30px;
+      background-color: var(--bg-dark-deep);
+    }
+
+    .card {
+      background-color: var(--bg-dark-main);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
+    }
+    
+    .card h2 {
+      color: var(--primary-accent);
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    /* === Tabel === */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+    }
+
+    thead {
+      background-color: var(--bg-dark-hover);
+    }
+
+    th {
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.2s;
+    }
+    
+    tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background-color: var(--bg-dark-hover);
+    }
+
+    /* === Tombol === */
+    .btn-primary, .btn-secondary, .btn-danger {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform 0.2s, box-shadow 0.3s, background-color 0.3s;
+    }
+    
+    .btn-primary { background-color: var(--primary-accent); color: #fff; }
+    .btn-secondary { background-color: var(--secondary-accent); color: #fff; }
+    .btn-danger { background-color: var(--danger-color); color: #fff; }
+
+    .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .action-buttons a, .action-buttons button {
+        margin-right: 8px;
+    }
+
+    /* === Status Styling === */
+    .status-active, .status-upcoming, .status-selesai {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+    .status-active { background-color: rgba(44, 182, 125, 0.15); color: var(--secondary-accent); }
+    .status-upcoming { background-color: rgba(255, 193, 7, 0.15); color: #ffc107; }
+    .status-selesai { background-color: rgba(108, 117, 125, 0.15); color: #6c757d; }
+    .status-available { background-color: rgba(44, 182, 125, 0.15); color: var(--secondary-accent); }
+    
+    /* === Flash Messages === */
+    .flash {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      border-left: 5px solid;
+    }
+    .flash-success { background-color: rgba(44, 182, 125, 0.2); color: var(--secondary-accent); border-color: var(--secondary-accent); }
+    .flash-danger { background-color: rgba(242, 95, 76, 0.2); color: var(--danger-color); border-color: var(--danger-color); }
+    .flash-warning { background-color: rgba(255, 193, 7, 0.2); color: #ffc107; border-color: #ffc107; }
+    .flash-info { background-color: rgba(23, 162, 184, 0.2); color: #17a2b8; border-color: #17a2b8; }
+
+  </style>
 </head>
 <body>
-  <header>GuardianTix - Admin Panel</header>
+  
   <div class="container">
     <!-- Sidebar -->
     <div class="sidebar">
+      <h2>GuardianTix</h2>
       <a href="#" class="active" onclick="showSection('dashboard')">📊 Dashboard</a>
       <a href="#" onclick="showSection('events')">🎵 Events</a>
       <a href="#" onclick="showSection('tickets')">🎫 Tickets</a>
@@ -20,253 +207,145 @@
       <a href="#" onclick="showSection('support')">📞 Support</a>
     </div>
 
-    
     <!-- Content -->
     <div class="content">
-      <!-- Dashboard -->
+      <!-- Dashboard (Statis untuk sekarang) -->
       <div id="dashboard" class="card section">
         <h2>Dashboard Overview</h2>
-        <p style="color: #C8A2C8; font-size: 1.1em;">Welcome Admin 👋 Manage your events and track performance</p>
-        
-        <div class="summary-grid">
-          <div class="summary-card">
-            <h3>🎵 Total Events</h3>
-            <p>Active Events: <b>3</b></p>
-            <p>Upcoming: <b>2</b></p>
-          </div>
-          <div class="summary-card">
-            <h3>🎫 Tickets Sales</h3>
-            <p>Total Sold: <b>1,200</b></p>
-            <p>Revenue: <b>Rp 850M</b></p>
-          </div>
-          <div class="summary-card">
-            <h3>👤 Users</h3>
-            <p>Registered: <b>250</b></p>
-            <p>Active Today: <b>45</b></p>
-          </div>
-          <div class="summary-card">
-            <h3>💳 Transactions</h3>
-            <p>Completed: <b>980</b></p>
-            <p>Pending: <b>20</b></p>
-          </div>
-          <div class="summary-card">
-            <h3>📑 Reports</h3>
-            <p>Last Report: <b>Sept 2025</b></p>
-            <p>Generated: <b>15 reports</b></p>
-          </div>
-          <div class="summary-card">
-            <h3>📞 Support</h3>
-            <p>Pending Tickets: <b>5</b></p>
-            <p>Resolved Today: <b>12</b></p>
-          </div>
-        </div>
+        <p>Welcome Admin 👋 Manage your events and track performance.</p>
       </div>
 
       <!-- Events -->
       <div id="events" class="card section" style="display:none;">
         <h2>Manage Events</h2>
-        <button class="btn-primary">+ Add New Event</button>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <a href="{{ url_for('add_event') }}" class="btn-primary" style="margin-bottom: 20px;">+ Add New Event</a>
         <table>
-          <tr>
-            <th>Event Name</th>
-            <th>Date</th>
-            <th>Location</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-          <tr>
-            <td>The Mystic Symphony</td>
-            <td>December 15, 2024</td>
-            <td>Jakarta Convention Center</td>
-            <td class="status-paid">Active</td>
-            <td>
-              <button class="btn-secondary">Edit</button> 
-              <button class="btn-danger">Delete</button>
-            </td>
-          </tr>
-          <tr>
-            <td>The Mystic Symphony</td>
-            <td>December 18, 2024</td>
-            <td>Bandung Convention Hall</td>
-            <td class="status-paid">Active</td>
-            <td>
-              <button class="btn-secondary">Edit</button> 
-              <button class="btn-danger">Delete</button>
-            </td>
-          </tr>
-          <tr>
-            <td>The Mystic Symphony</td>
-            <td>December 22, 2024</td>
-            <td>Surabaya Grand Hall</td>
-            <td class="status-pending">Upcoming</td>
-            <td>
-              <button class="btn-secondary">Edit</button> 
-              <button class="btn-danger">Delete</button>
-            </td>
-          </tr>
+          <thead>
+            <tr>
+              <th>Event Name</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events %}
+            <tr>
+              <td>{{ event.name }}</td>
+              <td>{{ event.event_date.strftime('%d %B %Y') }}</td>
+              <td>{{ event.location }}</td>
+              <td>
+                  <span class="status-{{ event.status.lower() }}">{{ event.status }}</span>
+              </td>
+              <td class="action-buttons">
+                <a href="{{ url_for('manage_tickets', event_id=event.id) }}" class="btn-secondary">Manage Tickets</a>
+                <a href="{{ url_for('edit_event', event_id=event.id) }}" class="btn-primary">Edit</a>
+                <form action="{{ url_for('delete_event', event_id=event.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this event and all its tickets?');">
+                  <button type="submit" class="btn-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" style="text-align:center; padding: 20px;">No events found. Add one to get started!</td>
+            </tr>
+            {% endfor %}
+          </tbody>
         </table>
       </div>
 
-      <!-- Tickets -->
+      <!-- Tickets (REVISI) -->
       <div id="tickets" class="card section" style="display:none;">
-        <h2>Manage Tickets</h2>
+        <h2>All Tickets Overview</h2>
         <table>
-          <tr>
-            <th>Ticket Type</th>
-            <th>Price</th>
-            <th>Quota</th>
-            <th>Sold</th>
-            <th>Available</th>
-          </tr>
-          <tr>
-            <td>Standard</td>
-            <td>Rp 450.000</td>
-            <td>500</td>
-            <td>420</td>
-            <td class="status-pending">80</td>
-          </tr>
-          <tr>
-            <td>Premium</td>
-            <td>Rp 850.000</td>
-            <td>300</td>
-            <td>280</td>
-            <td class="status-pending">20</td>
-          </tr>
-          <tr>
-            <td>VIP</td>
-            <td>Rp 1.250.000</td>
-            <td>200</td>
-            <td>180</td>
-            <td class="status-pending">20</td>
-          </tr>
+          <thead>
+            <tr>
+              <th>Event Name</th>
+              <th>Ticket Type</th>
+              <th>Price</th>
+              <th>Quota</th>
+              <th>Sold</th>
+              <th>Available</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticket in all_tickets %}
+            <tr>
+              <td>{{ ticket.event_name }}</td>
+              <td>{{ ticket.type_name }}</td>
+              <td>Rp {{ "{:,.0f}".format(ticket.price) }}</td>
+              <td>{{ ticket.quota }}</td>
+              <td>{{ ticket.sold }}</td>
+              <td><span class="status-available">{{ ticket.available }}</span></td>
+              <td class="action-buttons">
+                <a href="{{ url_for('edit_ticket', ticket_id=ticket.id) }}" class="btn-primary">Edit</a>
+                <form action="{{ url_for('delete_ticket', ticket_id=ticket.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this ticket type?');">
+                  <button type="submit" class="btn-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" style="text-align:center; padding: 20px;">No tickets found across any events.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
         </table>
       </div>
 
-      <!-- Transactions -->
+      <!-- Sections lain (statis) -->
       <div id="transactions" class="card section" style="display:none;">
         <h2>Transaction History</h2>
-        <table>
-          <tr>
-            <th>Buyer Name</th>
-            <th>Ticket Type</th>
-            <th>Payment Method</th>
-            <th>Amount</th>
-            <th>Status</th>
-          </tr>
-          <tr>
-            <td>Aulia Rahman</td>
-            <td>VIP</td>
-            <td>E-Wallet</td>
-            <td>Rp 1,250,000</td>
-            <td class="status-paid">Paid</td>
-          </tr>
-          <tr>
-            <td>Rizky Pratama</td>
-            <td>Standard</td>
-            <td>Bank Transfer</td>
-            <td>Rp 450,000</td>
-            <td class="status-pending">Pending</td>
-          </tr>
-          <tr>
-            <td>Dewi Anggraeni</td>
-            <td>Premium</td>
-            <td>Credit Card</td>
-            <td>Rp 850,000</td>
-            <td class="status-paid">Paid</td>
-          </tr>
-        </table>
+        <p>This section will show all user transactions.</p>
       </div>
-
-      <!-- Users -->
       <div id="users" class="card section" style="display:none;">
         <h2>User Management</h2>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-          <tr>
-            <td>Dewi Santoso</td>
-            <td>dewi@mail.com</td>
-            <td>0812xxxx</td>
-            <td class="status-paid">Active</td>
-            <td><button class="btn-danger">Suspend</button></td>
-          </tr>
-          <tr>
-            <td>Rizky Andika</td>
-            <td>rizky@mail.com</td>
-            <td>0813xxxx</td>
-            <td class="status-paid">Active</td>
-            <td><button class="btn-danger">Suspend</button></td>
-          </tr>
-          <tr>
-            <td>Budi Setiawan</td>
-            <td>budi@mail.com</td>
-            <td>0814xxxx</td>
-            <td class="status-pending">Inactive</td>
-            <td><button class="btn-secondary">Activate</button></td>
-          </tr>
-        </table>
+        <p>This section will allow managing user accounts.</p>
       </div>
-
-      <!-- Reports -->
-      <div id="reports" class="card section" style="display:none;">
+       <div id="reports" class="card section" style="display:none;">
         <h2>Reports & Analytics</h2>
-        <p style="color: #C8A2C8;">Export sales reports and user analytics:</p>
-        <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
-          <button class="btn-primary">📊 Download PDF Report</button>
-          <button class="btn-primary">📈 Download Excel Data</button>
-        </div>
-        <div style="margin-top: 25px;">
-          <h3 style="color: #FFD700;">Recent Reports</h3>
-          <ul style="color: #C8A2C8;">
-            <li>September 2025 - Sales Report</li>
-            <li>August 2025 - User Analytics</li>
-            <li>July 2025 - Revenue Summary</li>
-          </ul>
-        </div>
+        <p>This section will be used for generating reports.</p>
       </div>
-
-      <!-- Support -->
-      <div id="support" class="card section" style="display:none;">
-        <h2>Customer Support Tickets</h2>
-        <table>
-          <tr>
-            <th>User</th>
-            <th>Issue Type</th>
-            <th>Message</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-          <tr>
-            <td>Budi Santoso</td>
-            <td>Ticket Issue</td>
-            <td>"Saya belum terima e-ticket"</td>
-            <td class="status-pending">Pending</td>
-            <td><button class="btn-primary">Resolve</button></td>
-          </tr>
-          <tr>
-            <td>Sinta Wati</td>
-            <td>Refund Request</td>
-            <td>"Bisa refund tiket?"</td>
-            <td class="status-resolved">Resolved</td>
-            <td><button class="btn-secondary">View</button></td>
-          </tr>
-          <tr>
-            <td>Ahmad Fauzi</td>
-            <td>Payment Issue</td>
-            <td>"Payment gagal tapi saldo terpotong"</td>
-            <td class="status-pending">Pending</td>
-            <td><button class="btn-primary">Resolve</button></td>
-          </tr>
-        </table>
+       <div id="support" class="card section" style="display:none;">
+        <h2>Customer Support</h2>
+        <p>This section will display support tickets from users.</p>
       </div>
     </div>
   </div>
 
-  <script src="/static/script/admin.js"></script>
+  <script>
+    // JavaScript untuk menavigasi antar section
+    function showSection(sectionId) {
+      // Sembunyikan semua section
+      document.querySelectorAll('.section').forEach(section => {
+        section.style.display = 'none';
+      });
+      // Tampilkan section yang dipilih
+      document.getElementById(sectionId).style.display = 'block';
+
+      // Atur status 'active' di sidebar
+      document.querySelectorAll('.sidebar a').forEach(link => {
+        link.classList.remove('active');
+      });
+      document.querySelector(`.sidebar a[onclick="showSection('${sectionId}')"]`).classList.add('active');
+    }
+
+    // Tampilkan section dashboard secara default saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+      showSection('dashboard');
+    });
+  </script>
 </body>
 </html>
+
