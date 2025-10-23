@@ -4,6 +4,7 @@ import os
 import mysql.connector
 from functools import wraps
 from datetime import datetime
+import time
 
 app = Flask(__name__)
 
@@ -16,7 +17,7 @@ app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'Quantum_drift14', 
+    'password': 'pulupulu', 
     'database': 'db_konser'
 }
 
@@ -102,8 +103,33 @@ def homepage():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+        
+        # Ambil events
         cursor.execute("SELECT * FROM events WHERE status IN ('Active', 'Upcoming') ORDER BY event_date ASC")
         events = cursor.fetchall()
+        
+        # Untuk setiap event, ambil data ticketsnya
+        events_with_tickets = []
+        for event in events:
+            cursor.execute("""
+                SELECT type_name, price, quota, sold, (quota - sold) as available 
+                FROM tickets 
+                WHERE event_id = %s
+                ORDER BY price DESC
+            """, (event['id'],))
+            tickets = cursor.fetchall()
+            
+            events_with_tickets.append({
+                'id': event['id'],
+                'name': event['name'],
+                'location': event['location'],
+                'event_date': event['event_date'],
+                'status': event['status'],
+                'tickets': tickets  # Tambahkan data tickets
+            })
+            
+        events = events_with_tickets
+        
     except mysql.connector.Error as err:
         print(f"Error fetching homepage events: {err}")
         events = []
@@ -113,6 +139,121 @@ def homepage():
             conn.close()
 
     return render_template("user/homepage.html", username=session.get("username", "Pengguna"), events=events)
+
+# ==========================
+#   API ROUTES
+# ==========================
+@app.route("/checkout", methods=["POST"])
+@login_required
+def checkout():
+    conn = None
+    try:
+        data = request.get_json()
+        event_id = data['event_id']
+        tickets = data['tickets']
+        user_id = session['user_id']
+        
+        conn = get_db_connection()
+        if not conn:
+            return {'success': False, 'error': 'Database connection failed'}, 500
+            
+        cursor = conn.cursor(dictionary=True)
+        
+        # Hitung total amount & validasi stok
+        total_amount = 0
+        ticket_details = []
+        
+        for ticket_type, quantity in tickets.items():
+            if quantity <= 0:
+                continue
+                
+            cursor.execute(
+                "SELECT id, quota, sold, price FROM tickets WHERE event_id = %s AND type_name = %s",
+                (event_id, ticket_type)
+            )
+            ticket = cursor.fetchone()
+            
+            if not ticket:
+                return {'success': False, 'error': f'Ticket type {ticket_type} not found'}, 400
+            
+            available = ticket['quota'] - ticket['sold']
+            if quantity > available:
+                return {'success': False, 'error': f'Only {available} {ticket_type} tickets available'}, 400
+            
+            total_amount += quantity * ticket['price']
+            ticket_details.append(f"{ticket_type} x{quantity}")
+        
+        # Generate VA Number
+        va_number = f"88{user_id:06d}{int(time.time()) % 10000:04d}"
+        
+        # Create payment record
+        cursor.execute(
+            """INSERT INTO payments 
+               (user_id, event_id, payment_method, va_number, amount, status, expires_at) 
+               VALUES (%s, %s, %s, %s, %s, %s, DATE_ADD(NOW(), INTERVAL 24 HOUR))""",
+            (user_id, event_id, 'VA', va_number, total_amount, 'pending')
+        )
+        payment_id = cursor.lastrowid
+        
+        # Create order record
+# Create order record - SESUAIKAN DENGAN KOLOM YANG ADA
+        cursor.execute(
+    """INSERT INTO orders 
+       (user_id, event_id, customer_name, customer_email, total_amount, payment_status, payment_id, ticket_details) 
+       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+    (user_id, event_id, session['username'], session['email'], total_amount, 'pending', payment_id, ', '.join(ticket_details))
+)
+        conn.commit()
+        
+        return {
+            'success': True, 
+            'message': 'Payment created! Please complete payment via VA',
+            'payment_id': payment_id,
+            'va_number': va_number,
+            'amount': total_amount,
+            'redirect_url': f'/payment/{payment_id}'
+        }
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"❌ Checkout error: {str(e)}")
+        return {'success': False, 'error': f'Database error: {str(e)}'}, 500
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+@app.route("/payment/<int:payment_id>")
+@login_required
+def payment_page(payment_id):
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        cursor.execute("""
+            SELECT p.*, e.name as event_name, u.username 
+            FROM payments p
+            JOIN events e ON p.event_id = e.id
+            JOIN users u ON p.user_id = u.id
+            WHERE p.id = %s
+        """, (payment_id,))
+        payment = cursor.fetchone()
+        
+        if not payment:
+            flash("Payment not found!", "danger")
+            return redirect(url_for('homepage'))
+            
+        return render_template("user/payment.html", payment=payment)
+        
+    except Exception as e:
+        print(f"Payment page error: {e}")
+        return redirect(url_for('homepage'))
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -213,11 +354,9 @@ def admin_panel():
         cursor.execute("SELECT * FROM events ORDER BY event_date DESC")
         events = cursor.fetchall()
         
-        # Ambil data overview tickets
+        # Ambil data tickets
         query_tickets = """
-            SELECT 
-                t.id, t.type_name, t.price, t.quota, t.sold, (t.quota - t.sold) as available,
-                e.name as event_name
+            SELECT t.*, (t.quota - t.sold) as available, e.name as event_name
             FROM tickets t
             JOIN events e ON t.event_id = e.id
             ORDER BY e.name, t.price ASC
@@ -225,23 +364,61 @@ def admin_panel():
         cursor.execute(query_tickets)
         all_tickets = cursor.fetchall()
 
-        # (REVISI) Ambil semua data pengguna
+        # Ambil data users
         cursor.execute("SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC")
         users = cursor.fetchall()
+        
+        # === TAMBAHAN: Ambil data transactions ===
+        cursor.execute("""
+            SELECT 
+                p.*,
+                e.name as event_name,
+                u.username as customer_name,
+                o.ticket_details,
+                p.created_at as transaction_date
+            FROM payments p
+            JOIN events e ON p.event_id = e.id
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN orders o ON p.id = o.payment_id
+            ORDER BY p.created_at DESC
+            LIMIT 10  -- Tampilkan 10 transaksi terbaru
+        """)
+        transactions = cursor.fetchall()
+        
+        # Statistics
+        cursor.execute("SELECT COUNT(*) as total FROM payments")
+        total_transactions = cursor.fetchone()['total']
+        
+        cursor.execute("SELECT COUNT(*) as paid FROM payments WHERE status = 'paid'")
+        paid_transactions = cursor.fetchone()['paid']
+        
+        cursor.execute("SELECT SUM(amount) as revenue FROM payments WHERE status = 'paid'")
+        revenue = cursor.fetchone()['revenue'] or 0
 
     except mysql.connector.Error as err:
         print(f"Admin panel error: {err}")
         events = []
         all_tickets = []
-        users = [] # (REVISI)
+        users = []
+        transactions = []
+        total_transactions = 0
+        paid_transactions = 0
+        revenue = 0
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
             
-    # (REVISI) Kirim TIGA variabel ke template
-    return render_template("adminpanel.html", events=events, all_tickets=all_tickets, users=users)
-
+    # Kirim SEMUA data ke template (TAMBAH 4 VARIABLE BARU)
+    return render_template("adminpanel.html", 
+                         events=events, 
+                         all_tickets=all_tickets, 
+                         users=users,
+                         transactions=transactions,           # BARU
+                         total_transactions=total_transactions, # BARU
+                         paid_transactions=paid_transactions,   # BARU
+                         revenue=revenue)    
+                   # BARU
 # --- Event CRUD ---
 @app.route("/admin/events/add", methods=["GET", "POST"])
 @admin_required
@@ -447,9 +624,34 @@ def delete_ticket(ticket_id):
             
     return redirect(url_for('manage_tickets', event_id=event_id)) if event_id else redirect(url_for('admin_panel'))
 
+#
+
+# --- Quick Add Ticket (from admin panel) ---
+@app.route("/admin/tickets/quick-add", methods=["POST"])
+@admin_required
+def add_ticket_quick():
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO tickets (event_id, type_name, price, quota, sold) VALUES (%s, %s, %s, %s, %s)",
+            (request.form['event_id'], request.form['type_name'], request.form['price'], request.form['quota'], 0)
+        )
+        conn.commit()
+        flash("🎫 Ticket added successfully!", "success")
+    except mysql.connector.Error as err:
+        flash("❌ Error adding ticket.", "danger")
+        print(f"Quick add ticket error: {err}")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+    return redirect(url_for('admin_panel'))
 # ==========================
 #   ROUTES - USER LAINNYA
 # ==========================
+
 
 @app.route("/concert")
 @login_required
@@ -494,6 +696,8 @@ def payment():
 @login_required
 def success():
     return render_template("user/success.html")
+
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -4,24 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GuardianTix</title>
-    <!-- Pastikan link CSS ini benar dan file CSS-nya berisi kode Anda -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/user/homepage.css') }}">
 </head>
 <body>
 
-    <!-- Flash Messages (Tetap Sama) -->
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-container">
           {% for category, message in messages %}
-            <!-- Menggunakan class flash-message sesuai CSS Anda -->
             <div class="flash-message {{ category }}">{{ message }}</div>
           {% endfor %}
         </div>
       {% endif %}
     {% endwith %}
 
-    <!-- Navigasi (Tetap Sama) -->
+    <!-- Navigasi -->
     <nav>
       <div class="logo">GuardianTix</div>
       <div id="authSection" class="user-info">
@@ -37,101 +35,284 @@
       </div>
     </nav>
 
-    <!-- Hero Section (Tetap Sama) -->
+    <!-- Hero Section -->
     <section class="hero">
-      <!-- Kita bisa buat judul hero dinamis jika perlu, tapi sementara tetap -->
-      <h1>Reality Club</h1>
-      <p>one night, one story, endless memories.</p>
-      {% if session.get('username') %}
-        <div class="welcome-message">
-          Welcome back, {{ session['username'] }}! Ready for some magical concerts?
-        </div>
-      {% endif %}
+      <div class="hero-content">
+        <h1>Reality Club</h1>
+        <p>one night, one story, endless memories.</p>
+        {% if session.get('username') %}
+          <div class="welcome-message">
+            Welcome back, {{ session['username'] }}! Ready for some magical concerts?
+          </div>
+        {% endif %}
+      </div>
     </section>
 
-    <!-- World Tour Section (Tetap Sama) -->
-    <section>
+    <!-- World Tour Section -->
+    <section class="tour-section">
       <h2>Indonesia Tour 2025</h2>
       <p>Reality Club: A night to remember<br>by PBL RKS 306</p>
     </section>
 
-    <!-- Main Event Highlight -->
-    <section>
-        <!-- Menggunakan class 'cities' seperti di kode asli Anda -->
-        <div class="cities"
-             style="display: grid; grid-template-columns: repeat(2, 1fr);
-                    gap: 20px; max-width: 1200px; margin: 0 auto;">
-
-            <!-- ============================================== -->
-            <!-- == BAGIAN INI YANG KITA UBAH MENJADI DINAMIS == -->
-            <!-- ============================================== -->
-
+    <!-- Events Grid -->
+    <section class="events-section">
+        <div class="events-grid">
             {% for event in events %}
-            <!-- Struktur Card Sama Persis Seperti Kode Asli Anda -->
-            <div class="city-card" style="text-align: center; padding: 30px;">
-                <!-- Menggunakan style inline h3 seperti asli -->
-                <h3 style="font-size: 1.8em;">{{ event.name }}</h3>
-                <!-- Menggunakan style inline p seperti asli -->
-                <p style="font-size: 1.3em; color: #C8A2C8;">{{ event.location }}</p>
-
-                <!-- Menggunakan style inline p seperti asli, format tanggal disesuaikan -->
-                <p style="margin: 20px 0; font-size: 1.1em;">
-                    🗓️ {{ event.event_date.strftime('%A, %d %B %Y') }} <br>
-                    <!-- ⏰ Waktu belum ada di DB, bisa ditambahkan nanti atau dihapus -->
-                    <!-- ⏰ 18.30 wita -->
-                     ⭐️ Status: {{ event.status }} <!-- Menambahkan Status -->
-                </p>
-
-                <!-- Menghilangkan 'Sold Tickets' sementara -->
-                <!-- <div class="rating" style="font-size: 1.3em;">Sold ??? tickets</div> -->
-
-                <!-- Menggunakan style inline div dan class button seperti asli -->
-                <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px;">
-                    <a href="javascript:void(0)" onclick="bookingModal.open('{{ event.name | escape }}', {{ event.id }})" class="btn btn-primary">Find Tickets</a>
+            <div class="event-card">
+                <h3 class="event-name">{{ event.name }}</h3>
+                <p class="event-location">{{ event.location }}</p>
+                
+                <div class="event-date">
+                    🗓️ {{ event.event_date.strftime('%A, %d %B %Y') }}
                 </div>
-            </div>
-            {% else %}
-            <!-- Pesan jika tidak ada event, dengan styling sederhana -->
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #A7A9BE;">
-                <p>There are currently no upcoming events. Please check back later!</p>
+                <div class="event-status">
+                    Status: <span class="status-{{ event.status|lower }}">{{ event.status }}</span>
+                </div>
+                
+                <!-- Available Tickets -->
+                <div class="tickets-section">
+                    <p class="tickets-title">Available Tickets</p>
+                    
+                    {% for ticket in event.tickets %}
+                    <div class="ticket-item">
+                        <div class="ticket-info">
+                            <span class="ticket-type">{{ ticket.type_name }}</span>
+                            <span class="ticket-price">Rp {{ "{:,.0f}".format(ticket.price) }}</span>
+                        </div>
+                        <span class="ticket-stock {% if ticket.available > 10 %}high{% elif ticket.available > 0 %}medium{% else %}sold-out{% endif %}">
+                            {{ ticket.available }} left
+                        </span>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not event.tickets %}
+                    <p class="no-tickets">No tickets available yet</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Find Tickets Button -->
+                <button class="find-tickets-btn" onclick="openTicketModal({{ event.id }})">
+                    Find Tickets
+                </button>
             </div>
             {% endfor %}
-
-            <!-- ============================================== -->
-            <!-- == AKHIR BAGIAN YANG DIUBAH == -->
-            <!-- ============================================== -->
-
         </div>
     </section>
 
-    <!-- Footer (Tetap Sama) -->
+    <!-- Footer -->
     <footer>
-      <h2 style="color: #FFD700;">Contact Person</h2>
-      <div class="contact-item">
+      <h2 class="footer-title">Contact Person</h2>
+      <div class="contact-info">
         <p>Jam kerja: Senin - Jumat, 09:00 - 17:00</p>
         <p>📞 <a href="tel:+62211234567">+62 21-1234-567</a></p>
         <p>✉️ <a href="mailto:info@guardiantix.com">info@guardiantix.com</a></p>
       </div>
-      <p style="margin-top:20px; color: #C8A2C8;">© 2024 GuardianTix — All rights reserved.</p>
+      <p class="copyright">© 2024 GuardianTix — All rights reserved.</p>
     </footer>
 
-    <!-- Modal (Tetap Sama, perlu penyesuaian JS jika data tiket dinamis) -->
+    <!-- Ticket Modal -->
     <div id="ticketModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="bookingModal.close()">&times;</span>
-        <h2 id="modalTitle" style="color: #FFD700;">Book Tickets</h2>
-        <p id="modalInfo" style="color: #C8A2C8;"></p>
-        <div class="ticket-options">
-          <div class="ticket-card" onclick="bookingModal.select(this,'Standard')"><h4>Standard</h4><p>Rp 450.000</p></div>
-          <div class="ticket-card" onclick="bookingModal.select(this,'Premium')"><h4>Premium</h4><p>Rp 850.000</p></div>
-          <div class="ticket-card" onclick="bookingModal.select(this,'VIP')"><h4>VIP</h4><p>Rp 1.250.000</p></div>
+        <div class="modal-content">
+            <span class="close" onclick="closeTicketModal()">&times;</span>
+            
+            <h2 id="modalEventName">Select Tickets</h2>
+            <p id="modalEventDetails"></p>
+            
+            <div id="ticketSelection">
+                <p class="loading-text">Loading tickets...</p>
+            </div>
+            
+            <div class="modal-footer">
+                <p id="totalPrice">Total: Rp 0</p>
+                <button onclick="proceedToCheckout()" class="checkout-btn">
+                    Continue to Checkout
+                </button>
+            </div>
         </div>
-        <button id="selectBtn" onclick="bookingModal.confirm()">Select Tickets</button>
-      </div>
     </div>
 
-    <!-- Script JS (Tetap Sama) -->
-    <script src="{{ url_for('static', filename='script/user/homepage.js') }}"></script>
+    <!-- JavaScript -->
+    <script>
+        let selectedTickets = {};
+        let currentEventId = null;
+        let currentEventData = null;
+
+        // Simpan data events dari backend
+        const eventsData = [
+            {% for event in events %}
+            {
+                id: {{ event.id }},
+                name: "{{ event.name }}",
+                location: "{{ event.location }}",
+                event_date: "{{ event.event_date.strftime('%A, %d %B %Y') }}",
+                status: "{{ event.status }}",
+                tickets: [
+                    {% for ticket in event.tickets %}
+                    {
+                        type_name: "{{ ticket.type_name }}",
+                        price: {{ ticket.price }},
+                        available: {{ ticket.available }}
+                    }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        function openTicketModal(eventId) {
+            currentEventId = eventId;
+            selectedTickets = {};
+            
+            currentEventData = eventsData.find(event => event.id === eventId);
+            
+            if (!currentEventData) {
+                alert('Event not found!');
+                return;
+            }
+            
+            renderTicketModal(currentEventData.tickets, eventId);
+        }
+
+        function renderTicketModal(tickets, eventId) {
+            const modal = document.getElementById('ticketModal');
+            const ticketSelection = document.getElementById('ticketSelection');
+            
+            document.getElementById('modalEventName').textContent = currentEventData.name;
+            document.getElementById('modalEventDetails').textContent = 
+                `${currentEventData.location} • ${currentEventData.event_date}`;
+            
+            ticketSelection.innerHTML = '';
+            
+            if (tickets.length === 0) {
+                ticketSelection.innerHTML = '<p class="no-tickets-modal">No tickets available for this event</p>';
+                return;
+            }
+            
+            tickets.forEach(ticket => {
+                const ticketDiv = document.createElement('div');
+                ticketDiv.className = 'ticket-option';
+                ticketDiv.innerHTML = `
+                    <div class="ticket-option-content">
+                        <div class="ticket-details">
+                            <h4>${ticket.type_name}</h4>
+                            <p class="ticket-price-modal">Rp ${ticket.price.toLocaleString('id-ID')}</p>
+                            <small class="stock-info">
+                                ${ticket.available} tickets available
+                            </small>
+                        </div>
+                        <div class="quantity-controls">
+                            <button onclick="decreaseTicket('${ticket.type_name}', ${ticket.price})" class="qty-btn">-</button>
+                            <span id="qty-${ticket.type_name}" class="quantity">0</span>
+                            <button onclick="increaseTicket('${ticket.type_name}', ${ticket.price}, ${ticket.available})" class="qty-btn">+</button>
+                        </div>
+                    </div>
+                `;
+                ticketSelection.appendChild(ticketDiv);
+            });
+            
+            modal.style.display = 'block';
+            updateTotal();
+        }
+
+        function increaseTicket(type, price, available) {
+            const currentQty = selectedTickets[type] || 0;
+            if (currentQty < available) {
+                selectedTickets[type] = currentQty + 1;
+                document.getElementById(`qty-${type}`).textContent = selectedTickets[type];
+                updateTotal();
+            } else {
+                alert(`Only ${available} ${type} tickets available!`);
+            }
+        }
+
+        function decreaseTicket(type, price) {
+            const currentQty = selectedTickets[type] || 0;
+            if (currentQty > 0) {
+                selectedTickets[type] = currentQty - 1;
+                document.getElementById(`qty-${type}`).textContent = selectedTickets[type];
+                updateTotal();
+            }
+        }
+
+        function updateTotal() {
+            let total = 0;
+            for (const [type, qty] of Object.entries(selectedTickets)) {
+                const ticket = currentEventData.tickets.find(t => t.type_name === type);
+                if (ticket) {
+                    total += qty * ticket.price;
+                }
+            }
+            document.getElementById('totalPrice').textContent = `Total: Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticketModal').style.display = 'none';
+            selectedTickets = {};
+            currentEventId = null;
+            currentEventData = null;
+        }
+
+        function proceedToCheckout() {
+            const totalTickets = Object.values(selectedTickets).reduce((sum, qty) => sum + qty, 0);
+            
+            if (totalTickets === 0) {
+                alert('Please select at least one ticket.');
+                return;
+            }
+            
+            const confirmPurchase = confirm(`Confirm purchase of ${totalTickets} ticket(s) for ${currentEventData.name}?\nTotal: Rp ${document.getElementById('totalPrice').textContent.split('Rp ')[1]}`);
+            if (!confirmPurchase) return;
+            
+            const checkoutBtn = document.querySelector('.checkout-btn');
+            const originalText = checkoutBtn.textContent;
+            checkoutBtn.textContent = 'Processing...';
+            checkoutBtn.disabled = true;
+            
+            fetch('/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    event_id: currentEventId,
+                    tickets: selectedTickets
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('🎉 ' + data.message);
+                    closeTicketModal();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alert('❌ Purchase failed: ' + data.error);
+                    checkoutBtn.textContent = originalText;
+                    checkoutBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Checkout error:', error);
+                alert('❌ Network error. Please try again.');
+                checkoutBtn.textContent = originalText;
+                checkoutBtn.disabled = false;
+            });
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('ticketModal');
+            if (event.target === modal) {
+                closeTicketModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeTicketModal();
+            }
+        });
+    </script>
+
 </body>
 </html>
-
