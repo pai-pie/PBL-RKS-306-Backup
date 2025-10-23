@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import mysql.connector
 from functools import wraps
-from datetime import datetime # Diperlukan untuk konversi tanggal
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -16,7 +16,7 @@ app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': '',
+    'password': 'Quantum_drift14', 
     'database': 'db_konser'
 }
 
@@ -54,32 +54,34 @@ def admin_required(f):
 #   FUNGSI BANTUAN
 # ==========================
 def create_admin_user_if_not_exists():
-    conn = get_db_connection()
-    if not conn:
-        print("Could not connect to database to verify admin user.")
-        return
+    conn = None
+    try:
+        conn = get_db_connection()
+        if not conn:
+            print("Could not connect to database to verify admin user.")
+            return
 
-    cursor = conn.cursor(dictionary=True)
-    
-    admin_email = "admin@guardiantix.com"
-    cursor.execute("SELECT id FROM users WHERE email = %s", (admin_email,))
-    admin_user = cursor.fetchone()
+        cursor = conn.cursor(dictionary=True)
+        
+        admin_email = "admin@guardiantix.com"
+        cursor.execute("SELECT id FROM users WHERE email = %s", (admin_email,))
+        admin_user = cursor.fetchone()
 
-    if not admin_user:
-        print(f"Admin user not found, creating one...")
-        password_hash = generate_password_hash('admin123')
-        try:
+        if not admin_user:
+            print(f"Admin user not found, creating one...")
+            password_hash = generate_password_hash('admin123')
             cursor.execute(
                 "INSERT INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)",
                 ("System Admin", admin_email, password_hash, "admin")
             )
             conn.commit()
             print("Admin user created successfully.")
-        except mysql.connector.Error as err:
-            print(f"Failed to create admin user: {err}")
-    
-    cursor.close()
-    conn.close()
+    except mysql.connector.Error as err:
+        print(f"Failed to create admin user: {err}")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
 
 # Jalankan fungsi ini saat aplikasi dimulai
 with app.app_context():
@@ -95,7 +97,22 @@ with app.app_context():
 def homepage():
     if session.get("role") == "admin":
         return redirect(url_for("admin_panel"))
-    return render_template("user/homepage.html", username=session.get("username", "Pengguna"))
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM events WHERE status IN ('Active', 'Upcoming') ORDER BY event_date ASC")
+        events = cursor.fetchall()
+    except mysql.connector.Error as err:
+        print(f"Error fetching homepage events: {err}")
+        events = []
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return render_template("user/homepage.html", username=session.get("username", "Pengguna"), events=events)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -103,40 +120,37 @@ def register():
         username = request.form["username"].strip()
         email = request.form["email"].strip()
         password = request.form["password"].strip()
-        confirm_password = request.form.get("confirm_password", "").strip()
-
-        if password != confirm_password:
-            flash("Passwords do not match!", "error")
-            return render_template("user/register.html")
-
-        conn = get_db_connection()
-        if not conn:
-            flash("Database connection error. Please try again later.", "danger")
-            return render_template("user/register.html")
-
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        existing_user = cursor.fetchone()
-
-        if existing_user:
-            flash("Email already registered!", "error")
-            cursor.close()
-            conn.close()
-            return render_template("user/register.html")
-
-        password_hash = generate_password_hash(password)
-        cursor.execute(
-            "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
-            (username, email, password_hash)
-        )
-        conn.commit()
         
-        cursor.close()
-        conn.close()
-        
-        flash("Registration successful! Please log in to continue.", "success")
-        return redirect(url_for("login"))
-        
+        conn = None
+        try:
+            conn = get_db_connection()
+            if not conn:
+                flash("Database connection error.", "danger")
+                return render_template("user/register.html")
+
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash("Email already registered!", "error")
+                return render_template("user/register.html")
+
+            password_hash = generate_password_hash(password)
+            cursor.execute(
+                "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
+                (username, email, password_hash)
+            )
+            conn.commit()
+            flash("Registration successful! Please log in.", "success")
+            return redirect(url_for("login"))
+        except mysql.connector.Error as err:
+            flash("An error occurred during registration.", "danger")
+            print(f"Registration error: {err}")
+            return render_template("user/register.html")
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+            
     return render_template("user/register.html")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -145,31 +159,34 @@ def login():
         email = request.form["email"].strip()
         password = request.form["password"].strip()
         
-        conn = get_db_connection()
-        if not conn:
-            flash("Database connection error. Please try again later.", "danger")
-            return render_template("user/login.html")
+        conn = None
+        try:
+            conn = get_db_connection()
+            if not conn:
+                flash("Database connection error.", "danger")
+                return render_template("user/login.html")
 
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            user = cursor.fetchone()
 
-        if user and check_password_hash(user["password_hash"], password):
-            session["user_id"] = user["id"]
-            session["username"] = user["username"]
-            session["email"] = email
-            session["role"] = user["role"]
-            flash(f"Welcome back, {user['username']}!", "success")
-            
-            if user["role"] == 'admin':
-                return redirect(url_for("admin_panel"))
+            if user and check_password_hash(user["password_hash"], password):
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                session["email"] = email
+                session["role"] = user["role"]
+                flash(f"Welcome back, {user['username']}!", "success")
+                
+                return redirect(url_for("admin_panel")) if user["role"] == 'admin' else redirect(url_for("homepage"))
             else:
-                return redirect(url_for("homepage"))
-
-        flash("Invalid email or password!", "danger")
-        return render_template("user/login.html")
+                flash("Invalid email or password!", "danger")
+        except mysql.connector.Error as err:
+            flash("An error occurred during login.", "danger")
+            print(f"Login error: {err}")
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
 
     return render_template("user/login.html")
 
@@ -181,232 +198,254 @@ def logout():
 
 
 # =======================================================
-#   ROUTES - ADMIN PANEL (EVENTS & TICKETS MANAGEMENT)
+#   ROUTES - ADMIN PANEL (EVENTS & TICKETS & USERS MANAGEMENT)
 # =======================================================
 
 @app.route("/admin")
 @admin_required
 def admin_panel():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    # Ambil semua event (kode yang sudah ada)
-    cursor.execute("SELECT * FROM events ORDER BY event_date DESC")
-    events = cursor.fetchall()
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Ambil data events
+        cursor.execute("SELECT * FROM events ORDER BY event_date DESC")
+        events = cursor.fetchall()
+        
+        # Ambil data overview tickets
+        query_tickets = """
+            SELECT 
+                t.id, t.type_name, t.price, t.quota, t.sold, (t.quota - t.sold) as available,
+                e.name as event_name
+            FROM tickets t
+            JOIN events e ON t.event_id = e.id
+            ORDER BY e.name, t.price ASC
+        """
+        cursor.execute(query_tickets)
+        all_tickets = cursor.fetchall()
 
-    # (REVISI) Ambil semua tiket dari semua event untuk tampilan overview
-    query = """
-        SELECT 
-            t.id, t.type_name, t.price, t.quota, t.sold, (t.quota - t.sold) as available,
-            e.name as event_name
-        FROM tickets t
-        JOIN events e ON t.event_id = e.id
-        ORDER BY e.name, t.price ASC
-    """
-    cursor.execute(query)
-    all_tickets = cursor.fetchall()
+        # (REVISI) Ambil semua data pengguna
+        cursor.execute("SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC")
+        users = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
-    
-    # Kirim DUA variabel ke template: events dan all_tickets
-    return render_template("adminpanel.html", events=events, all_tickets=all_tickets)
+    except mysql.connector.Error as err:
+        print(f"Admin panel error: {err}")
+        events = []
+        all_tickets = []
+        users = [] # (REVISI)
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+            
+    # (REVISI) Kirim TIGA variabel ke template
+    return render_template("adminpanel.html", events=events, all_tickets=all_tickets, users=users)
 
 # --- Event CRUD ---
 @app.route("/admin/events/add", methods=["GET", "POST"])
 @admin_required
 def add_event():
     if request.method == "POST":
-        name = request.form['name']
-        event_date = request.form['event_date']
-        location = request.form['location']
-        status = request.form['status']
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO events (name, event_date, location, status) VALUES (%s, %s, %s, %s)",
-            (name, event_date, location, status)
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        flash("Event added successfully!", "success")
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO events (name, event_date, location, status) VALUES (%s, %s, %s, %s)",
+                (request.form['name'], request.form['event_date'], request.form['location'], request.form['status'])
+            )
+            conn.commit()
+            flash("Event added successfully!", "success")
+        except mysql.connector.Error as err:
+            flash("Error adding event.", "danger")
+            print(f"Add event error: {err}")
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
         return redirect(url_for('admin_panel'))
     return render_template("add_event.html")
 
 @app.route("/admin/events/edit/<int:event_id>", methods=["GET", "POST"])
 @admin_required
 def edit_event(event_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    if request.method == "POST":
-        name = request.form['name']
-        event_date = request.form['event_date']
-        location = request.form['location']
-        status = request.form['status']
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
         
-        cursor.execute(
-            "UPDATE events SET name=%s, event_date=%s, location=%s, status=%s WHERE id=%s",
-            (name, event_date, location, status, event_id)
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
-        flash("Event updated successfully!", "success")
-        return redirect(url_for('admin_panel'))
+        if request.method == "POST":
+            cursor.execute(
+                "UPDATE events SET name=%s, event_date=%s, location=%s, status=%s WHERE id=%s",
+                (request.form['name'], request.form['event_date'], request.form['location'], request.form['status'], event_id)
+            )
+            conn.commit()
+            flash("Event updated successfully!", "success")
+            return redirect(url_for('admin_panel'))
 
-    cursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
-    event = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    if not event:
-        flash("Event not found!", "danger")
-        return redirect(url_for('admin_panel'))
+        cursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
+        event = cursor.fetchone()
         
-    # Konversi date ke string format YYYY-MM-DD untuk input HTML
-    if isinstance(event['event_date'], datetime):
-        event['event_date'] = event['event_date'].strftime('%Y-%m-%d')
-    return render_template("edit_event.html", event=event)
+        if not event:
+            flash("Event not found!", "danger")
+            return redirect(url_for('admin_panel'))
+            
+        if isinstance(event.get('event_date'), datetime):
+            event['event_date'] = event['event_date'].strftime('%Y-%m-%d')
+        return render_template("edit_event.html", event=event)
+    except mysql.connector.Error as err:
+        flash("Error managing event.", "danger")
+        print(f"Edit event error: {err}")
+        return redirect(url_for('admin_panel'))
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
 
 @app.route("/admin/events/delete/<int:event_id>", methods=["POST"])
 @admin_required
 def delete_event(event_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    flash("Event and all associated tickets have been deleted.", "success")
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
+        conn.commit()
+        flash("Event and all associated tickets have been deleted.", "success")
+    except mysql.connector.Error as err:
+        flash("Error deleting event.", "danger")
+        print(f"Delete event error: {err}")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
     return redirect(url_for('admin_panel'))
 
 # --- Ticket CRUD per Event ---
 @app.route("/admin/events/<int:event_id>/tickets")
 @admin_required
 def manage_tickets(event_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
+        event = cursor.fetchone()
+        cursor.execute("SELECT *, (quota - sold) as available FROM tickets WHERE event_id = %s ORDER BY price ASC", (event_id,))
+        tickets = cursor.fetchall()
 
-    # Ambil info event untuk ditampilkan di judul
-    cursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
-    event = cursor.fetchone()
+        if not event:
+            flash("Event not found!", "danger")
+            return redirect(url_for('admin_panel'))
 
-    # Ambil semua tiket untuk event ini
-    cursor.execute("SELECT *, (quota - sold) as available FROM tickets WHERE event_id = %s ORDER BY price ASC", (event_id,))
-    tickets = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    if not event:
-        flash("Event not found!", "danger")
+        return render_template("manage_tickets.html", event=event, tickets=tickets)
+    except mysql.connector.Error as err:
+        flash("Error loading tickets.", "danger")
+        print(f"Manage tickets error: {err}")
         return redirect(url_for('admin_panel'))
-
-    return render_template("manage_tickets.html", event=event, tickets=tickets)
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
 
 @app.route("/admin/events/<int:event_id>/tickets/add", methods=["GET", "POST"])
 @admin_required
 def add_ticket(event_id):
-    if request.method == "POST":
-        type_name = request.form['type_name']
-        price = request.form['price']
-        quota = request.form['quota']
-
+    conn = None
+    try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO tickets (event_id, type_name, price, quota) VALUES (%s, %s, %s, %s)",
-            (event_id, type_name, price, quota)
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
+        cursor = conn.cursor(dictionary=True)
+
+        if request.method == "POST":
+            cursor.execute(
+                "INSERT INTO tickets (event_id, type_name, price, quota) VALUES (%s, %s, %s, %s)",
+                (event_id, request.form['type_name'], request.form['price'], request.form['quota'])
+            )
+            conn.commit()
+            flash("Ticket type added successfully!", "success")
+            return redirect(url_for('manage_tickets', event_id=event_id))
+
+        cursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
+        event = cursor.fetchone()
         
-        flash("Ticket type added successfully!", "success")
+        if not event:
+            flash("Event not found!", "danger")
+            return redirect(url_for('admin_panel'))
+
+        return render_template("add_ticket.html", event=event)
+    except mysql.connector.Error as err:
+        flash("Error adding ticket.", "danger")
+        print(f"Add ticket error: {err}")
         return redirect(url_for('manage_tickets', event_id=event_id))
-
-    # Ambil info event untuk ditampilkan di form
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
-    event = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    if not event:
-        flash("Event not found!", "danger")
-        return redirect(url_for('admin_panel'))
-
-    return render_template("add_ticket.html", event=event)
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
 
 
 @app.route("/admin/tickets/edit/<int:ticket_id>", methods=["GET", "POST"])
 @admin_required
 def edit_ticket(ticket_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    if request.method == "POST":
-        type_name = request.form['type_name']
-        price = request.form['price']
-        quota = request.form['quota']
-
-        # Ambil event_id sebelum update
         cursor.execute("SELECT event_id FROM tickets WHERE id = %s", (ticket_id,))
-        ticket = cursor.fetchone()
-        event_id = ticket['event_id'] if ticket else None
+        ticket_data = cursor.fetchone()
+        event_id = ticket_data['event_id'] if ticket_data else None
 
-        cursor.execute(
-            "UPDATE tickets SET type_name=%s, price=%s, quota=%s WHERE id=%s",
-            (type_name, price, quota, ticket_id)
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
-        flash("Ticket type updated successfully!", "success")
-        
-        if event_id:
+        if request.method == "POST":
+            cursor.execute(
+                "UPDATE tickets SET type_name=%s, price=%s, quota=%s WHERE id=%s",
+                (request.form['type_name'], request.form['price'], request.form['quota'], ticket_id)
+            )
+            conn.commit()
+            flash("Ticket type updated successfully!", "success")
             return redirect(url_for('manage_tickets', event_id=event_id))
-        else:
-            return redirect(url_for('admin_panel'))
 
-
-    cursor.execute("SELECT t.*, e.name as event_name FROM tickets t JOIN events e ON t.event_id = e.id WHERE t.id = %s", (ticket_id,))
-    ticket = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    if not ticket:
-        flash("Ticket type not found!", "danger")
-        return redirect(url_for('admin_panel'))
+        cursor.execute("SELECT t.*, e.name as event_name FROM tickets t JOIN events e ON t.event_id = e.id WHERE t.id = %s", (ticket_id,))
+        ticket = cursor.fetchone()
         
-    return render_template("edit_ticket.html", ticket=ticket)
+        if not ticket:
+            flash("Ticket type not found!", "danger")
+            return redirect(url_for('admin_panel'))
+            
+        return render_template("edit_ticket.html", ticket=ticket)
+    except mysql.connector.Error as err:
+        flash("Error editing ticket.", "danger")
+        print(f"Edit ticket error: {err}")
+        return redirect(url_for('admin_panel'))
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
 
 @app.route("/admin/tickets/delete/<int:ticket_id>", methods=["POST"])
 @admin_required
 def delete_ticket(ticket_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    # Ambil event_id sebelum delete untuk redirect
-    cursor.execute("SELECT event_id FROM tickets WHERE id = %s", (ticket_id,))
-    ticket = cursor.fetchone()
-    event_id = ticket['event_id'] if ticket else None
-
-    cursor.execute("DELETE FROM tickets WHERE id = %s", (ticket_id,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    flash("Ticket type deleted.", "success")
-    
-    if event_id:
-        return redirect(url_for('manage_tickets', event_id=event_id))
-    else:
-        return redirect(url_for('admin_panel'))
+    conn = None
+    event_id = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT event_id FROM tickets WHERE id = %s", (ticket_id,))
+        ticket = cursor.fetchone()
+        event_id = ticket['event_id'] if ticket else None
+        cursor.execute("DELETE FROM tickets WHERE id = %s", (ticket_id,))
+        conn.commit()
+        flash("Ticket type deleted.", "success")
+    except mysql.connector.Error as err:
+        flash("Error deleting ticket.", "danger")
+        print(f"Delete ticket error: {err}")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+            
+    return redirect(url_for('manage_tickets', event_id=event_id)) if event_id else redirect(url_for('admin_panel'))
 
 # ==========================
 #   ROUTES - USER LAINNYA
@@ -420,16 +459,22 @@ def concert():
 @app.route("/account")
 @login_required
 def account():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
-    user = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
+    conn = None
+    user = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
+        user = cursor.fetchone()
+    except mysql.connector.Error as err:
+        print(f"Account page error: {err}")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
     join_date_str = "N/A"
     if user and user.get("created_at"):
-        # Pastikan created_at adalah objek datetime
         if isinstance(user["created_at"], datetime):
             join_date_str = user["created_at"].strftime('%B %d, %Y')
 
