@@ -182,6 +182,13 @@ def checkout():
             
             total_amount += quantity * ticket['price']
             ticket_details.append(f"{ticket_type} x{quantity}")
+            
+            # ⚠️⚠️⚠️ INI YANG PERLU DITAMBAH! ⚠️⚠️⚠️
+            # UPDATE TICKET QUOTA DI SINI!
+            cursor.execute(
+                "UPDATE tickets SET sold = sold + %s WHERE event_id = %s AND type_name = %s",
+                (quantity, event_id, ticket_type)
+            )
         
         # Generate VA Number
         va_number = f"88{user_id:06d}{int(time.time()) % 10000:04d}"
@@ -196,14 +203,14 @@ def checkout():
         payment_id = cursor.lastrowid
         
         # Create order record
-# Create order record - SESUAIKAN DENGAN KOLOM YANG ADA
         cursor.execute(
-    """INSERT INTO orders 
-       (user_id, event_id, customer_name, customer_email, total_amount, payment_status, payment_id, ticket_details) 
-       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-    (user_id, event_id, session['username'], session['email'], total_amount, 'pending', payment_id, ', '.join(ticket_details))
-)
-        conn.commit()
+            """INSERT INTO orders 
+               (user_id, event_id, customer_name, customer_email, total_amount, payment_status, payment_id, ticket_details) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            (user_id, event_id, session['username'], session['email'], total_amount, 'pending', payment_id, ', '.join(ticket_details))
+        )
+        
+        conn.commit()  # ⚠️ JANGAN LUPA COMMIT!
         
         return {
             'success': True, 
@@ -647,6 +654,64 @@ def add_ticket_quick():
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+    return redirect(url_for('admin_panel'))
+
+@app.route("/admin/mark_paid/<int:payment_id>", methods=["POST"])
+@admin_required
+def mark_paid(payment_id):
+    """Mark payment as paid and update ticket quota"""
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 1. Get payment details
+        cursor.execute("""
+            SELECT p.*, o.ticket_details, o.id as order_id 
+            FROM payments p 
+            LEFT JOIN orders o ON p.id = o.payment_id 
+            WHERE p.id = %s
+        """, (payment_id,))
+        payment = cursor.fetchone()
+        
+        if not payment:
+            flash("Payment not found!", "danger")
+            return redirect(url_for('admin_panel'))
+        
+        if payment['status'] == 'paid':
+            flash("Payment already completed!", "warning")
+            return redirect(url_for('admin_panel'))
+        
+        # 2. Update payment status
+        cursor.execute("UPDATE payments SET status = 'paid' WHERE id = %s", (payment_id,))
+        
+        # 3. Update order status
+        if payment['order_id']:
+            cursor.execute("UPDATE orders SET payment_status = 'paid' WHERE payment_id = %s", (payment_id,))
+        
+        # 4. UPDATE TICKET QUOTA - INI YANG PENTING!
+        # Parse ticket details dari order (contoh: "VIP x1")
+        ticket_details = payment.get('ticket_details', '')
+        if 'VIP' in ticket_details:
+            cursor.execute("""
+                UPDATE tickets 
+                SET sold = sold + 1, available = quota - (sold + 1) 
+                WHERE event_id = %s AND type_name = 'VIP'
+            """, (payment['event_id'],))
+        
+        conn.commit()
+        flash("✅ Payment marked as paid! Ticket quota updated.", "success")
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+        print(f"Mark paid error: {e}")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+    
     return redirect(url_for('admin_panel'))
 # ==========================
 #   ROUTES - USER LAINNYA

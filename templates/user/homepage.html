@@ -252,66 +252,63 @@
             currentEventData = null;
         }
 
-        function proceedToCheckout() {
-            const totalTickets = Object.values(selectedTickets).reduce((sum, qty) => sum + qty, 0);
+function proceedToCheckout() {
+    const totalTickets = Object.values(selectedTickets).reduce((sum, qty) => sum + qty, 0);
+    
+    if (totalTickets === 0) {
+        alert('Please select at least one ticket.');
+        return;
+    }
+    
+    const confirmPurchase = confirm(`Confirm purchase of ${totalTickets} ticket(s) for ${currentEventData.name}?\nTotal: Rp ${document.getElementById('totalPrice').textContent.split('Rp ')[1]}`);
+    if (!confirmPurchase) return;
+    
+    const checkoutBtn = document.querySelector('.checkout-btn');
+    const originalText = checkoutBtn.textContent;
+    checkoutBtn.textContent = 'Processing...';
+    checkoutBtn.disabled = true;
+    
+    fetch('/checkout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            event_id: currentEventId,
+            tickets: selectedTickets
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('🎉 ' + data.message);
+            closeTicketModal();
             
-            if (totalTickets === 0) {
-                alert('Please select at least one ticket.');
-                return;
-            }
+            // ⚠️⚠️⚠️ INI DIA! GANTI BAGIAN INI ⚠️⚠️⚠️
+            // OLD CODE (hapus ini):
+            // setTimeout(() => {
+            //     location.reload();
+            // }, 1500);
             
-            const confirmPurchase = confirm(`Confirm purchase of ${totalTickets} ticket(s) for ${currentEventData.name}?\nTotal: Rp ${document.getElementById('totalPrice').textContent.split('Rp ')[1]}`);
-            if (!confirmPurchase) return;
+            // NEW CODE (tambah ini):
+            setTimeout(() => {
+                window.location.href = data.redirect_url || window.location.href;
+            }, 1000);
+            // ⚠️⚠️⚠️ SAMPAI SINI ⚠️⚠️⚠️
             
-            const checkoutBtn = document.querySelector('.checkout-btn');
-            const originalText = checkoutBtn.textContent;
-            checkoutBtn.textContent = 'Processing...';
-            checkoutBtn.disabled = true;
-            
-            fetch('/checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    event_id: currentEventId,
-                    tickets: selectedTickets
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('🎉 ' + data.message);
-                    closeTicketModal();
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    alert('❌ Purchase failed: ' + data.error);
-                    checkoutBtn.textContent = originalText;
-                    checkoutBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Checkout error:', error);
-                alert('❌ Network error. Please try again.');
-                checkoutBtn.textContent = originalText;
-                checkoutBtn.disabled = false;
-            });
+        } else {
+            alert('❌ Purchase failed: ' + data.error);
+            checkoutBtn.textContent = originalText;
+            checkoutBtn.disabled = false;
         }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('ticketModal');
-            if (event.target === modal) {
-                closeTicketModal();
-            }
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeTicketModal();
-            }
-        });
+    })
+    .catch(error => {
+        console.error('Checkout error:', error);
+        alert('❌ Network error. Please try again.');
+        checkoutBtn.textContent = originalText;
+        checkoutBtn.disabled = false;
+    });
+}
     </script>
 
 </body>
