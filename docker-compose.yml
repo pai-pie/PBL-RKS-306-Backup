@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_HOST=host.docker.internal
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=pulupulu
+      - DATABASE_NAME=db_konser
+      - SECRET_KEY=d9778a048a4befc8abe12d4ce68c3f56203ccf8d414a3dd702556945a2b87d54
+
+    volumes:
+      - .:/app
+    restart: unless-stopped
+ 
+ 

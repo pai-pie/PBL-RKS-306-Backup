@@ -1,14 +1,16 @@
 import mysql.connector
+import os
 import time
 from datetime import datetime
 
 class Database:
     def __init__(self):
         self.db_config = {
-            'host': 'localhost',
-            'user': 'root',
-            'password': 'pulupulu', 
-            'database': 'db_konser'
+            'host': os.environ.get('DATABASE_HOST', 'localhost'),
+            'user': os.environ.get('DATABASE_USER', 'root'),
+            'password': os.environ.get('DATABASE_PASSWORD', 'pulupulu'),
+            'database': os.environ.get('DATABASE_NAME', 'db_konser'),
+            'port': os.environ.get('DATABASE_PORT', '3306')
         }
 
     def get_connection(self):
@@ -125,13 +127,51 @@ class Database:
         )
 
     def delete_event(self, event_id):
-        return self.execute_query(
-            "DELETE FROM events WHERE id = %s", 
-            (event_id,)
-        )
+        """Delete event dengan disable foreign key checks sementara"""
+        conn = None
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            print(f"🔍 Attempting to delete event {event_id}")
+            
+            # Nonaktifkan foreign key checks sementara
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+            
+            # Delete semua data terkait
+            cursor.execute("DELETE FROM orders WHERE event_id = %s", (event_id,))
+            print(f"📦 Deleted {cursor.rowcount} orders")
+            
+            cursor.execute("DELETE FROM payments WHERE event_id = %s", (event_id,))
+            print(f"💰 Deleted {cursor.rowcount} payments")
+            
+            cursor.execute("DELETE FROM tickets WHERE event_id = %s", (event_id,))
+            print(f"🎫 Deleted {cursor.rowcount} tickets")
+            
+            # Delete event
+            cursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
+            deleted_rows = cursor.rowcount
+            print(f"🗑️ Deleted {deleted_rows} events")
+            
+            # Aktifkan kembali foreign key checks
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+            
+            conn.commit()
+            print(f"🎉 Event {event_id} deleted successfully!")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error deleting event {event_id}: {str(e)}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
 
     # ==========================
-    #   TICKET OPERATIONS
+    #   TICKET OPERATIONS  
     # ==========================
     
     def get_tickets_by_event(self, event_id):
@@ -311,20 +351,59 @@ class Database:
                 conn.close()
 
     # ==========================
+    #   ORDER OPERATIONS
+    # ==========================
+    
+    def get_orders_by_user(self, user_id):
+        return self.execute_query(
+            """SELECT o.*, e.name as event_name, e.event_date, e.location
+               FROM orders o 
+               JOIN events e ON o.event_id = e.id 
+               WHERE o.user_id = %s 
+               ORDER BY o.created_at DESC""",
+            (user_id,), 
+            fetch=True
+        )
+
+    def get_all_orders(self):
+        return self.execute_query(
+            """SELECT o.*, e.name as event_name, u.username, e.event_date
+               FROM orders o 
+               JOIN events e ON o.event_id = e.id 
+               JOIN users u ON o.user_id = u.id 
+               ORDER BY o.created_at DESC""",
+            fetch=True
+        )
+
+    # ==========================
     #   ADMIN DASHBOARD DATA
     # ==========================
     
     def get_admin_dashboard_data(self):
         """Ambil semua data untuk admin dashboard"""
-        return {
-            'events': self.execute_query("SELECT * FROM events ORDER BY event_date DESC", fetch=True) or [],
-            'all_tickets': self.execute_query("""
+        conn = None
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            # Get events
+            cursor.execute("SELECT * FROM events ORDER BY event_date DESC")
+            events = cursor.fetchall()
+            
+            # Get tickets with event names
+            cursor.execute("""
                 SELECT t.*, (t.quota - t.sold) as available, e.name as event_name
                 FROM tickets t JOIN events e ON t.event_id = e.id
                 ORDER BY e.name, t.price ASC
-            """, fetch=True) or [],
-            'users': self.execute_query("SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC", fetch=True) or [],
-            'transactions': self.execute_query("""
+            """)
+            all_tickets = cursor.fetchall()
+            
+            # Get users
+            cursor.execute("SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC")
+            users = cursor.fetchall()
+            
+            # Get recent transactions
+            cursor.execute("""
                 SELECT p.*, e.name as event_name, u.username as customer_name,
                        o.ticket_details, p.created_at as transaction_date
                 FROM payments p
@@ -332,8 +411,69 @@ class Database:
                 JOIN users u ON p.user_id = u.id
                 LEFT JOIN orders o ON p.id = o.payment_id
                 ORDER BY p.created_at DESC LIMIT 10
-            """, fetch=True) or [],
-            'total_transactions': self.execute_query("SELECT COUNT(*) as total FROM payments", fetch_one=True)['total'] or 0,
-            'paid_transactions': self.execute_query("SELECT COUNT(*) as paid FROM payments WHERE status = 'paid'", fetch_one=True)['paid'] or 0,
-            'revenue': self.execute_query("SELECT SUM(amount) as revenue FROM payments WHERE status = 'paid'", fetch_one=True)['revenue'] or 0
-        }
+            """)
+            transactions = cursor.fetchall()
+            
+            # Get transaction stats
+            cursor.execute("SELECT COUNT(*) as total FROM payments")
+            total_transactions = cursor.fetchone()['total'] or 0
+            
+            cursor.execute("SELECT COUNT(*) as paid FROM payments WHERE status = 'paid'")
+            paid_transactions = cursor.fetchone()['paid'] or 0
+            
+            cursor.execute("SELECT SUM(amount) as revenue FROM payments WHERE status = 'paid'")
+            revenue_result = cursor.fetchone()
+            revenue = revenue_result['revenue'] if revenue_result['revenue'] else 0
+            
+            return {
+                'events': events or [],
+                'all_tickets': all_tickets or [],
+                'users': users or [],
+                'transactions': transactions or [],
+                'total_transactions': total_transactions,
+                'paid_transactions': paid_transactions,
+                'revenue': revenue
+            }
+            
+        except Exception as e:
+            print(f"Error getting admin dashboard data: {e}")
+            return {
+                'events': [],
+                'all_tickets': [],
+                'users': [],
+                'transactions': [],
+                'total_transactions': 0,
+                'paid_transactions': 0,
+                'revenue': 0
+            }
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+
+    # ==========================
+    #   ADDITIONAL METHODS
+    # ==========================
+    
+    def get_event_stats(self):
+        """Get statistics for events"""
+        return self.execute_query(
+            """SELECT 
+                   COUNT(*) as total_events,
+                   SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active_events,
+                   SUM(CASE WHEN status = 'Upcoming' THEN 1 ELSE 0 END) as upcoming_events,
+                   SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed_events
+               FROM events""",
+            fetch_one=True
+        )
+
+    def get_user_stats(self):
+        """Get statistics for users"""
+        return self.execute_query(
+            """SELECT 
+                   COUNT(*) as total_users,
+                   SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admin_users,
+                   SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) as regular_users
+               FROM users""",
+            fetch_one=True
+        )
