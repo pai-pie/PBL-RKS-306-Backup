@@ -1,92 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment - GuardianTix</title>
-  <link rel="stylesheet" href="/static/css/user/payment.css">
-  <style>
-    .qr-dummy {
-      display: inline-block;
-      background: #000;
-      color: #fff;
-      font-family: monospace;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 15px;
-      line-height: 1.2;
-      text-align: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment - GuardianTix</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Georgia', serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2E2A30 0%, #1a1a2e 100%);
+            color: #FDF6E3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Magical background effects */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(199, 62, 62, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(200, 162, 200, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            background: linear-gradient(145deg, #1a1a2e, #2E2A30);
+            padding: 2.5rem;
+            border-radius: 15px;
+            width: 450px;
+            text-align: center;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(255, 215, 0, 0.2);
+            border: 2px solid #FFD700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #FFD700, #C73E3E, #C8A2C8, #FFD700);
+            border-radius: 17px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: #FFD700;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .header p {
+            color: #C8A2C8;
+            font-size: 1rem;
+        }
+
+        .order-card {
+            background: #2E2A30;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid #C8A2C8;
+            text-align: left;
+        }
+
+        .order-card h3 {
+            color: #FFD700;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .order-card h3 i {
+            margin-right: 10px;
+            color: #FFD700;
+        }
+
+        .order-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #C8A2C8;
+        }
+
+        .order-detail:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            color: #C8A2C8;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #FDF6E3;
+            font-weight: 600;
+        }
+
+        .payment-section {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .payment-section label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .method-select {
+            width: 100%;
+            padding: 0.85rem;
+            border: 2px solid #C8A2C8;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #2E2A30;
+            color: #FDF6E3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Georgia', serif;
+        }
+
+        .method-select:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            background: #1a1a2e;
+        }
+
+        .payment-details {
+            background: #2E2A30;
+            border: 2px solid #FFD700;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+            text-align: left;
+        }
+
+        .payment-details h3 {
+            color: #FFD700;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .payment-details h3 i {
+            margin-right: 10px;
+            color: #FFD700;
+        }
+
+        .va-info {
+            background: #1a1a2e;
+            padding: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid #C8A2C8;
+        }
+
+        .va-item {
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .va-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .va-label {
+            color: #C8A2C8;
+            font-weight: 500;
+        }
+
+        .va-value {
+            color: #FDF6E3;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 1.2rem;
+        }
+
+        .qr-dummy {
+            display: inline-block;
+            background: #000;
+            color: #FFD700;
+            font-family: monospace;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            line-height: 1.3;
+            font-size: 0.9rem;
+            border: 2px solid #FFD700;
+        }
+
+        .qr-note {
+            color: #C8A2C8;
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #C73E3E, #A52A2A);
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #FDF6E3;
+            font-family: 'Georgia', serif;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #FFD700, #D4AC0D);
+            color: #2E2A30;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .confirm-btn:disabled {
+            background: #2E2A30;
+            border-color: #C8A2C8;
+            color: #C8A2C8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .confirm-btn i {
+            margin-right: 10px;
+        }
+
+        .bank-logo {
+            width: 24px;
+            height: 24px;
+            background: #FFD700;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #2E2A30;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        option {
+            background: #2E2A30;
+            color: #FDF6E3;
+        }
+
+        /* Animation for magical effect */
+        @keyframes glow {
+            0%, 100% { 
+                box-shadow: 
+                    0 10px 30px rgba(0, 0, 0, 0.5),
+                    0 0 20px rgba(255, 215, 0, 0.3);
+            }
+            50% { 
+                box-shadow: 
+                    0 10px 30px rgba(0, 0, 0, 0.5),
+                    0 0 30px rgba(255, 215, 0, 0.5);
+            }
+        }
+
+        .container {
+            animation: glow 3s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Magical Payment</h1>
+            <p>Complete your magical payment experience</p>
+        </div>
 
-  <div class="container">
-    <h1>Magical Payment</h1>
-    <div class="ticket-info">
-      <div class="ticket-type" id="ticketType"></div>
-      <div class="ticket-price" id="ticketPrice"></div>
+        <!-- Order Details -->
+        <div class="order-card">
+            <h3><i class="fas fa-receipt"></i>Order Details</h3>
+            <div class="order-detail">
+                <span class="detail-label">Event:</span>
+                <span class="detail-value">{{ payment.event_name }}</span>
+            </div>
+            <div class="order-detail">
+                <span class="detail-label">Ticket:</span>
+                <span class="detail-value">Standard Ticket</span>
+            </div>
+            <div class="order-detail">
+                <span class="detail-label">Amount:</span>
+                <span class="detail-value">Rp {{ "{:,.0f}".format(payment.amount) }}</span>
+            </div>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="payment-section">
+            <label for="method">
+                <i class="fas fa-credit-card"></i> Choose Payment Method:
+            </label>
+            <select id="method" class="method-select" onchange="payment.chooseMethod(this.value)">
+                <option value="">-- Select Magical Payment --</option>
+                <option value="QR">K-Wallet Payment</option>
+                <option value="Virtual Account">K-Wallet Transfer</option>
+            </select>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="payment-details" id="paymentDetails">
+            <!-- Content will be filled by JavaScript -->
+        </div>
+
+        <!-- Confirm Button -->
+        <button id="confirmBtn" class="confirm-btn" onclick="payment.confirm()" disabled>
+            <i class="fas fa-lock"></i>Complete Magical Payment
+        </button>
     </div>
 
-    <label for="method">Choose Payment Method:</label>
-    <select id="method" onchange="payment.chooseMethod(this.value)">
-      <option value="">-- Select Magical Payment --</option>
-      <option value="QR">QR Code</option>
-      <option value="Virtual Account">Virtual Account</option>
-    </select>
+    <script>
+        const payment = {
+            chooseMethod(method) {
+                const details = document.getElementById("paymentDetails");
+                const confirmBtn = document.getElementById("confirmBtn");
 
-    <div class="payment-details" id="paymentDetails"></div>
+                if (method === "QR") {
+                    details.innerHTML = `
+                        <h3><i class="fas fa-qrcode"></i>K-Wallet Payment</h3>
+                        <div class="qr-container">
+                            <div class="qr-dummy">
+                            █▀▀▀▀▀█ ▀▀█ █▀▀▀▀▀█<br>
+                            █ ███ █ ▀█ ▀▄█ ███ █<br>
+                            █ ▀▀▀ █ ▄▀█▄▀▄ ▀▀▀ █<br>
+                            ▀▀▀▀▀▀▀ █▄▀ ▀ ▀ ▀▀▀▀▀▀▀<br>
+                            ▀▄▀▀▄█▄▀▀▄▀ █▀▀█▄▀▀▀█<br>
+                            ▄▀▀█▄▄ ▀▄▀▀▀▄▄▀ █ █▀█<br>
+                            █▄▄▀▀ █▀█▄█▀▀▄▀▀▄█▄▀█<br>
+                            ▀▀▀▀▀▀▀ ▀▀ ▀ ▀ ▀▀ ▀▀▀
+                            </div>
+                            <p class="qr-note">Scan this magical QR code with your preferred K-Wallet</p>
+                        </div>
+                    `;
+                    details.style.display = "block";
+                    confirmBtn.disabled = false;
+                } else if (method === "Virtual Account") {
+                    details.innerHTML = `
+                        <h3><i class="fas fa-university"></i>K-Wallet Transfer</h3>
+                        <div class="va-info">
+                            <div class="va-item">
+                                <span class="va-label">Bank:</span>
+                                <span class="va-value">
+                                    <span class="bank-logo">K</span>
+                                    K-Wallet Bank
+                                </span>
+                            </div>
+                            <div class="va-item">
+                                <span class="va-label">VA Number:</span>
+                                <span class="va-value">{{ payment.va_number }}</span>
+                            </div>
+                            <div class="va-item">
+                                <span class="va-label">Amount:</span>
+                                <span class="va-value">Rp {{ "{:,.0f}".format(payment.amount) }}</span>
+                            </div>
+                        </div>
+                        <p class="qr-note" style="margin-top: 15px;">
+                            <i class="fas fa-info-circle"></i> 
+                            Complete payment via your preferred K-Wallet
+                        </p>
+                    `;
+                    details.style.display = "block";
+                    confirmBtn.disabled = false;
+                } else {
+                    details.innerHTML = "";
+                    details.style.display = "none";
+                    confirmBtn.disabled = true;
+                }
+            },
 
-    <button id="confirmBtn" onclick="payment.confirm()" disabled>
-      Complete Magical Payment
-    </button>
-  </div>
+            confirm() {
+                const selectedMethod = document.getElementById("method").value;
+                if (!selectedMethod) {
+                    alert("⚠️ Please select a payment method first!");
+                    return;
+                }
 
-  <script>
-const payment = {
-  chooseMethod(method) {
-    const details = document.getElementById("paymentDetails");
-    const confirmBtn = document.getElementById("confirmBtn");
-
-    if (method === "QR") {
-      details.innerHTML = `
-        <h3>Scan QR to Pay</h3>
-        <div class="qr-dummy">
-        █▀▀█ █▀▀ █▀▀█<br>
-        █▄▄█ █▀▀ █▄▄▀<br>
-        ▀░░▀ ▀▀▀ ▀░▀▀
-        </div>
-        <p style="margin-top:10px;">Use any supported e-wallet app to scan this magical QR.</p>
-      `;
-      details.style.display = "block";
-      confirmBtn.disabled = false;
-    } else if (method === "Virtual Account") {
-      details.innerHTML = `
-        <h3>Virtual Account Number</h3>
-        <p>Bank: Guardian Bank</p>
-        <p>VA Number: <strong>1234-5678-9012-3456</strong></p>
-      `;
-      details.style.display = "block";
-      confirmBtn.disabled = false;
-    } else {
-      details.innerHTML = "";
-      details.style.display = "none";
-      confirmBtn.disabled = true;
-    }
-  },
-
-  
-  confirm() {
-    const selectedMethod = document.getElementById("method").value;
-    if (!selectedMethod) {
-      alert("⚠️ Silakan pilih metode pembayaran terlebih dahulu!");
-      return;
-    }
-
-    // langsung redirect ke halaman success tanpa popup
-    window.location.href = `/success?method=${encodeURIComponent(selectedMethod)}`;
-  }
-};
-  </script>
+                // Redirect ke success page
+                window.location.href = `/success?method=${encodeURIComponent(selectedMethod)}`;
+            }
+        };
+    </script>
 </body>
 </html>

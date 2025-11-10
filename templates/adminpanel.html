@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GuardianTix - Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
             --primary: #4361ee;
@@ -368,9 +369,28 @@
         .section {
             display: none;
         }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .bg-info {
+            background: #17a2b8 !important;
+            color: white;
+        }
+
+        .form-select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
     </style>
 </head>
-<body onload="showSection('dashboard')">
+<body>
     <div class="sidebar">
         <div class="logo-container">
             <div class="logo-icon">
@@ -495,7 +515,7 @@
                             <th>VA Number</th>
                             <th>Status</th>
                             <th>Date</th>
-                            <th>Action</th> <!-- ✅ COLUMN BARU -->
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -645,7 +665,7 @@
                         <th>VA Number</th>
                         <th>Status</th>
                         <th>Date</th>
-                        <th>Action</th> <!-- ✅ COLUMN BARU -->
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -657,18 +677,19 @@
                         <td>Rp {{ "{:,.0f}".format(transaction.amount) }}</td>
                         <td>{{ transaction.va_number }}</td>
                         <td>
-                            <span class="status status-{{ transaction.status }}">
-                                {{ transaction.status|upper }}
-                            </span>
+                            {% if transaction.status == 'pending' or transaction.status == 'PRIORMS' %}
+                                <span class="status status-pending">PENDING</span>
+                            {% elif transaction.status == 'paid' %}
+                                <span class="status status-paid">COMPLETED</span>
+                            {% else %}
+                                <span class="status status-pending">{{ transaction.status }}</span>
+                            {% endif %}
                         </td>
                         <td>{{ transaction.transaction_date.strftime('%d %b %Y, %H:%M') }}</td>
                         <td>
-                            {% if transaction.status == 'pending' %}
+                            {% if transaction.status == 'pending' or transaction.status == 'PRIORMS' %}
                             <form action="{{ url_for('mark_paid', payment_id=transaction.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-success btn-sm" 
-                                        onclick="return confirm('Mark transaction #{{ transaction.id }} as PAID?')">
-                                    ✅ Mark Paid
-                                </button>
+                                <button type="submit" class="btn btn-success btn-sm">✅ Mark Paid</button>
                             </form>
                             {% else %}
                             <span class="status status-paid">COMPLETED</span>
@@ -695,7 +716,11 @@
                         <th>Username</th>
                         <th>Email</th>
                         <th>Role</th>
+                        <th>Status</th>
                         <th>Joined On</th>
+                        <th>Total Orders</th>
+                        <th>Total Spent</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -704,16 +729,25 @@
                         <td>{{ user.username }}</td>
                         <td>{{ user.email }}</td>
                         <td>
-                            {% if user.role == 'admin' %}
-                                <span class="role-admin">{{ user.role }}</span>
-                            {% else %}
-                                <span class="role-user">{{ user.role }}</span>
-                            {% endif %}
+                            <select class="form-select form-select-sm user-role" data-user-id="{{ user.id }}">
+                                <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ user.status or 'Regular Member' }}</span>
                         </td>
                         <td>{{ user.created_at.strftime('%d %B %Y') }}</td>
+                        <td>{{ user.total_orders or 0 }}</td>
+                        <td>Rp {{ "{:,.0f}".format(user.total_spent or 0) }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewUserProfile({{ user.id }})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="4" style="text-align: center; padding: 20px;">No users found.</td></tr>
+                    <tr><td colspan="8" style="text-align: center; padding: 20px;">No users found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -733,6 +767,7 @@
     </div>
 
     <script>
+        // Show section function
         function showSection(sectionName) {
             // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
@@ -740,7 +775,10 @@
             });
             
             // Show selected section
-            document.getElementById(sectionName).style.display = 'block';
+            const selectedSection = document.getElementById(sectionName);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
             
             // Update active nav link
             document.querySelectorAll('.sidebar a').forEach(link => {
@@ -749,20 +787,101 @@
             event.currentTarget.classList.add('active');
         }
 
+        // Logout function
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 window.location.href = "{{ url_for('logout') }}";
             }
         }
 
+        // User role management
+        function initializeUserRoleManagement() {
+            document.querySelectorAll('.user-role').forEach(select => {
+                select.addEventListener('change', function() {
+                    const userId = this.dataset.userId;
+                    const newRole = this.value;
+                    
+                    updateUserRole(userId, newRole);
+                });
+            });
+        }
+
+        // Update user role
+        async function updateUserRole(userId, newRole) {
+            if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
+                // Reload to reset the dropdown
+                location.reload();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/update_user_role/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('User role updated successfully!');
+                    // Optionally reload the page to reflect changes
+                    location.reload();
+                } else {
+                    alert('Error updating user role: ' + data.error);
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error updating user role:', error);
+                alert('Error updating user role. Please try again.');
+                location.reload();
+            }
+        }
+
+        // View user profile
+        function viewUserProfile(userId) {
+            // In a real application, this would open a modal or redirect to user details
+            alert(`Viewing user profile for ID: ${userId}\n\nThis feature would show detailed user information, order history, and activity logs in a real implementation.`);
+            
+            // Example of what could be implemented:
+            // window.open(`/admin/user/${userId}`, '_blank');
+            // OR
+            // openUserModal(userId);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show dashboard by default
+            showSection('dashboard');
+            
+            // Initialize user role management
+            initializeUserRoleManagement();
+            
+            // Add active class to dashboard link
+            const dashboardLink = document.querySelector('.sidebar a[onclick*="dashboard"]');
+            if (dashboardLink) {
+                dashboardLink.classList.add('active');
+            }
+        });
+
+        // Additional utility functions
         function addToken() {
             alert('Token system will be implemented soon!');
         }
 
-        // Auto-show dashboard on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            showSection('dashboard');
-        });
+        // Example function for future modal implementation
+        function openUserModal(userId) {
+            // This would be implemented with a modal library or Bootstrap modal
+            console.log('Opening modal for user:', userId);
+            // fetch(`/api/admin/user/${userId}`)
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         // Populate modal with user data
+            //         // Show modal
+            //     });
+        }
     </script>
 </body>
 </html>

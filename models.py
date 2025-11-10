@@ -46,3 +46,27 @@ class Order:
     total_amount: float
     payment_status: str
     ticket_details: str
+
+@dataclass
+class UserProfile:
+    id: int
+    username: str
+    email: str
+    role: str
+    status: str
+    created_at: datetime
+    total_tickets: int = 0
+    upcoming_events: int = 0
+    total_spent: float = 0.0
+
+@dataclass
+class UserTicket:
+    order_id: int
+    event_name: str
+    event_date: datetime
+    location: str
+    ticket_details: str
+    total_amount: float
+    payment_status: str
+    order_date: datetime
+    va_number: str = ""

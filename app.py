@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import time
@@ -30,7 +30,8 @@ class GuardianTixApp:
         self.app.route("/concert")(self.concert)
         self.app.route("/account")(self.account)
         self.app.route("/payment/<int:payment_id>")(self.payment_page)
-        
+        self.app.route("/success")(self.payment_success)  
+
         # API Routes
         self.app.route("/checkout", methods=["POST"])(self.checkout)
         
@@ -45,6 +46,15 @@ class GuardianTixApp:
         self.app.route("/admin/tickets/delete/<int:ticket_id>", methods=["POST"])(self.delete_ticket)
         self.app.route("/admin/tickets/quick-add", methods=["POST"])(self.add_ticket_quick)
         self.app.route("/admin/mark_paid/<int:payment_id>", methods=["POST"])(self.mark_paid)
+
+        # ==========================
+        #   API ROUTES BARU - TAMBAHKAN INI
+        # ==========================
+        self.app.route("/api/update_profile", methods=["POST"])(self.update_profile)
+        self.app.route("/api/user_tickets")(self.api_user_tickets)
+        self.app.route("/api/user_stats")(self.api_user_stats)
+        self.app.route("/api/cancel_ticket/<int:ticket_id>", methods=["POST"])(self.cancel_ticket)
+        self.app.route("/api/admin/update_user_role/<int:user_id>", methods=["POST"])(self.update_user_role)
 
     def create_admin_user(self):
         """Buat admin user jika belum ada"""
@@ -150,6 +160,13 @@ class GuardianTixApp:
             
         return render_template("user/payment.html", payment=payment)
 
+    @login_required
+    def payment_success(self):
+        payment_method = request.args.get('method', 'Unknown')
+        return render_template("user/success.html", 
+                         payment_method=payment_method,
+                         username=session.get("username", "User"))
+
     # ==========================
     #   ROUTE HANDLERS - API
     # ==========================
@@ -160,14 +177,16 @@ class GuardianTixApp:
             data = request.get_json()
             event_id = data['event_id']
             tickets = data['tickets']
+            payment_method = data.get('payment_method', 'BCA')
             user_id = session['user_id']
-            
-            result = self.db.process_checkout(user_id, event_id, tickets, session['username'], session['email'])
-            
+        
+            # Kirim payment_method ke database
+            result = self.db.process_checkout(user_id, event_id, tickets, session['username'], session['email'], payment_method)
+        
             if result['success']:
                 return {
                     'success': True, 
-                    'message': 'Payment created! Please complete payment via VA',
+                    'message': '🎫 Order confirmed! Please complete payment.',
                     'payment_id': result['payment_id'],
                     'va_number': result['va_number'],
                     'amount': result['total_amount'],
@@ -175,10 +194,167 @@ class GuardianTixApp:
                 }
             else:
                 return {'success': False, 'error': result['error']}, 400
-                
+            
         except Exception as e:
             print(f"❌ Checkout error: {str(e)}")
             return {'success': False, 'error': f'System error: {str(e)}'}, 500
+
+    # ==========================
+    #   API ROUTES BARU - TAMBAHKAN INI
+    # ==========================
+    
+    @login_required
+    def update_profile(self):
+        """Update user profile data"""
+        try:
+            user_id = session['user_id']
+            data = request.get_json()
+            
+            print(f"🎯 DEBUG update_profile called")
+            print(f"🎯 User ID: {user_id}")
+            print(f"🎯 Request data: {data}")
+            
+            # Validasi data wajib
+            if not data.get('name') or not data.get('email'):
+                print("❌ Missing name or email")
+                return jsonify({
+                    'success': False, 
+                    'error': 'Name and email are required'
+                }), 400
+            
+            # Cek jika email sudah dipakai oleh user lain
+            existing_user = self.db.get_user_by_email(data.get('email'))
+            print(f"🎯 Existing user check: {existing_user}")
+            
+            if existing_user and existing_user['id'] != user_id:
+                print("❌ Email already used by another user")
+                return jsonify({
+                    'success': False, 
+                    'error': 'Email already used by another account'
+                }), 400
+            
+            # Update user data in database
+            print("🎯 Calling database update...")
+            result = self.db.update_user_profile(
+                user_id,
+                data.get('name'),
+                data.get('email'),
+                data.get('status', 'Regular Member')
+            )
+            
+            print(f"🎯 Database update result: {result}")
+            
+            if result:
+                # Update session data
+                session['username'] = data.get('name')
+                session['email'] = data.get('email')
+                
+                print("✅ Profile updated successfully")
+                return jsonify({
+                    'success': True, 
+                    'message': 'Profile updated successfully!'
+                })
+            else:
+                print("❌ Database update failed")
+                return jsonify({
+                    'success': False, 
+                    'error': 'Failed to update profile in database'
+                }), 400
+                
+        except Exception as e:
+            print(f"❌ Profile update error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False, 
+                'error': f'System error: {str(e)}'
+            }), 500
+
+    @login_required
+    def api_user_tickets(self):
+        """Get user tickets data"""
+        try:
+            user_id = session['user_id']
+            tickets = self.db.get_user_tickets(user_id)
+            
+            return jsonify({
+                'success': True,
+                'tickets': tickets
+            })
+        except Exception as e:
+            print(f"Tickets fetch error: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to fetch tickets'
+            }), 500
+
+    @login_required
+    def api_user_stats(self):
+        """Get user statistics"""
+        try:
+            user_id = session['user_id']
+            stats = self.db.get_user_detailed_stats(user_id)
+            
+            return jsonify({
+                'success': True,
+                'stats': stats
+            })
+        except Exception as e:
+            print(f"Stats fetch error: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to fetch user stats'
+            }), 500
+
+    @login_required
+    def cancel_ticket(self, ticket_id):
+        """Cancel user ticket"""
+        try:
+            user_id = session['user_id']
+            result = self.db.cancel_user_ticket(user_id, ticket_id)
+            
+            if result['success']:
+                return jsonify({
+                    'success': True,
+                    'message': 'Ticket cancelled successfully'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': result['error']
+                }), 400
+                
+        except Exception as e:
+            print(f"Ticket cancellation error: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to cancel ticket'
+            }), 500
+
+    @admin_required
+    def update_user_role(self, user_id):
+        """Update user role (admin function)"""
+        try:
+            data = request.get_json()
+            new_role = data.get('role')
+            
+            if new_role not in ['user', 'admin']:
+                return jsonify({'success': False, 'error': 'Invalid role'}), 400
+            
+            # Update role in database
+            result = self.db.execute_query(
+                "UPDATE users SET role = %s WHERE id = %s",
+                (new_role, user_id)
+            )
+            
+            if result:
+                return jsonify({'success': True, 'message': 'User role updated'})
+            else:
+                return jsonify({'success': False, 'error': 'Failed to update role'}), 400
+                
+        except Exception as e:
+            print(f"Role update error: {str(e)}")
+            return jsonify({'success': False, 'error': 'System error'}), 500
 
     # ==========================
     #   ROUTE HANDLERS - ADMIN
@@ -326,7 +502,6 @@ class GuardianTixApp:
 
     def run(self, host='0.0.0.0', port=5000, debug=True):
         self.app.run(host=host, port=port, debug=debug)
-
 
 if __name__ == "__main__":
     app_instance = GuardianTixApp()

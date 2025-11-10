@@ -16,7 +16,9 @@ class Database:
     def get_connection(self):
         """Dapatkan koneksi database"""
         try:
-            return mysql.connector.connect(**self.db_config)
+            config = self.db_config.copy()
+            config['ssl_disabled'] = True
+            return mysql.connector.connect(**config)
         except mysql.connector.Error as err:
             print(f"Database connection error: {err}")
             return None
@@ -219,7 +221,7 @@ class Database:
     #   PAYMENT & ORDER OPERATIONS
     # ==========================
     
-    def process_checkout(self, user_id, event_id, tickets, username, email):
+    def process_checkout(self, user_id, event_id, tickets, username, email, payment_method='VA'):
         """Process checkout dengan transaction"""
         conn = None
         try:
@@ -262,21 +264,21 @@ class Database:
             # Generate VA Number
             va_number = f"88{user_id:06d}{int(time.time()) % 10000:04d}"
             
-            # Create payment
+            # Create payment - AUTO PAID
             cursor.execute(
                 """INSERT INTO payments 
-                   (user_id, event_id, payment_method, va_number, amount, status, expires_at) 
-                   VALUES (%s, %s, %s, %s, %s, %s, DATE_ADD(NOW(), INTERVAL 24 HOUR))""",
-                (user_id, event_id, 'VA', va_number, total_amount, 'pending')
+                (user_id, event_id, payment_method, va_number, amount, status, expires_at) 
+                VALUES (%s, %s, %s, %s, %s, 'paid', DATE_ADD(NOW(), INTERVAL 24 HOUR))""",
+                (user_id, event_id, payment_method, va_number, total_amount)
             )
             payment_id = cursor.lastrowid
             
-            # Create order
+            # Create order - AUTO PAID  
             cursor.execute(
                 """INSERT INTO orders 
-                   (user_id, event_id, customer_name, customer_email, total_amount, payment_status, payment_id, ticket_details) 
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                (user_id, event_id, username, email, total_amount, 'pending', payment_id, ', '.join(ticket_details))
+                (user_id, event_id, customer_name, customer_email, total_amount, payment_status, payment_id, ticket_details) 
+                VALUES (%s, %s, %s, %s, %s, 'paid', %s, %s)""",
+                (user_id, event_id, username, email, total_amount, payment_id, ', '.join(ticket_details))
             )
             
             conn.commit()
@@ -477,3 +479,148 @@ class Database:
                FROM users""",
             fetch_one=True
         )
+
+    # ==========================
+    #   USER PROFILE OPERATIONS - YANG BARU DITAMBAHKAN
+    # ==========================
+    
+    def update_user_profile(self, user_id, name, email, status):
+        """Update user profile information"""
+        try:
+            print(f"🔧 DATABASE: Updating profile for user {user_id}")
+            print(f"🔧 DATABASE: name={name}, email={email}, status={status}")
+            
+            result = self.execute_query(
+                "UPDATE users SET username = %s, email = %s, status = %s WHERE id = %s",
+                (name, email, status, user_id)
+            )
+            
+            print(f"🔧 DATABASE: Update result = {result}")
+            print(f"🔧 DATABASE: Result type = {type(result)}")
+            
+            # Return True jika berhasil (result tidak None), False jika gagal
+            return result is not None
+        except Exception as e:
+            print(f"❌ DATABASE Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def get_user_tickets(self, user_id):
+        """Get all tickets for a user"""
+        return self.execute_query(
+            """SELECT 
+                   o.id as order_id,
+                   o.ticket_details,
+                   o.total_amount,
+                   o.payment_status,
+                   o.order_date as order_date,
+                   e.name as event_name,
+                   e.event_date,
+                   e.location,
+                   p.va_number,
+                   p.status as payment_status
+               FROM orders o
+               JOIN events e ON o.event_id = e.id
+               LEFT JOIN payments p ON o.payment_id = p.id
+               WHERE o.user_id = %s
+               ORDER BY o.order_date DESC""",
+            (user_id,), 
+            fetch=True
+        ) or []
+
+    def get_user_detailed_stats(self, user_id):
+        """Get detailed statistics for a user"""
+        # Total tickets purchased
+        total_tickets = self.execute_query(
+            "SELECT COUNT(*) as count FROM orders WHERE user_id = %s",
+            (user_id,), 
+            fetch_one=True
+        ) or {'count': 0}
+        
+        # Upcoming events
+        upcoming_events = self.execute_query(
+            """SELECT COUNT(DISTINCT o.event_id) as count 
+               FROM orders o 
+               JOIN events e ON o.event_id = e.id 
+               WHERE o.user_id = %s AND e.event_date >= CURDATE()""",
+            (user_id,), 
+            fetch_one=True
+        ) or {'count': 0}
+        
+        # Total spending
+        total_spent = self.execute_query(
+            "SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE user_id = %s AND payment_status = 'paid'",
+            (user_id,), 
+            fetch_one=True
+        ) or {'total': 0}
+        
+        # User join date
+        user_info = self.get_user_by_id(user_id)
+        
+        return {
+            'total_tickets': total_tickets['count'],
+            'upcoming_events': upcoming_events['count'],
+            'total_spent': total_spent['total'],
+            'member_since': user_info.get('created_at') if user_info else None,
+            'status': user_info.get('status', 'Regular Member') if user_info else 'Regular Member'
+        }
+
+    def cancel_user_ticket(self, user_id, ticket_id):
+        """Cancel a user's ticket"""
+        conn = None
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            # Verify ticket belongs to user
+            cursor.execute(
+                "SELECT * FROM orders WHERE id = %s AND user_id = %s",
+                (ticket_id, user_id)
+            )
+            order = cursor.fetchone()
+            
+            if not order:
+                return {'success': False, 'error': 'Ticket not found'}
+            
+            # Update order status
+            cursor.execute(
+                "UPDATE orders SET payment_status = 'cancelled' WHERE id = %s",
+                (ticket_id,)
+            )
+            
+            conn.commit()
+            return {'success': True}
+            
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            return {'success': False, 'error': str(e)}
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+
+    # ==========================
+    #   ADMIN USER MANAGEMENT
+    # ==========================
+    
+    def update_user_role(self, user_id, role):
+        """Update user role (admin function)"""
+        return self.execute_query(
+            "UPDATE users SET role = %s WHERE id = %s",
+            (role, user_id)
+        )
+
+    def get_all_users_detailed(self):
+        """Get all users with detailed information"""
+        return self.execute_query(
+            """SELECT 
+                   id, username, email, role, status, 
+                   created_at, 
+                   (SELECT COUNT(*) FROM orders WHERE user_id = users.id) as total_orders,
+                   (SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE user_id = users.id AND payment_status = 'paid') as total_spent
+               FROM users 
+               ORDER BY created_at DESC""",
+            fetch=True
+        ) or []
