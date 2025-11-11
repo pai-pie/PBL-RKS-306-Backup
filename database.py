@@ -78,6 +78,49 @@ class Database:
             (username, email, password_hash, role)
         )
 
+    def delete_user(self, user_id):
+        """Hapus user dan semua data terkait"""
+        conn = None
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            print(f"🔍 Attempting to delete user {user_id}")
+            
+            # Nonaktifkan foreign key checks sementara
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+            
+            # Delete semua data terkait user
+            # 1. Hapus orders
+            cursor.execute("DELETE FROM orders WHERE user_id = %s", (user_id,))
+            print(f"📦 Deleted {cursor.rowcount} orders")
+            
+            # 2. Hapus payments
+            cursor.execute("DELETE FROM payments WHERE user_id = %s", (user_id,))
+            print(f"💰 Deleted {cursor.rowcount} payments")
+            
+            # 3. Hapus user
+            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            deleted_rows = cursor.rowcount
+            print(f"👤 Deleted {deleted_rows} users")
+            
+            # Aktifkan kembali foreign key checks
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+            
+            conn.commit()
+            print(f"🎉 User {user_id} deleted successfully!")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error deleting user {user_id}: {str(e)}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+
     # ==========================
     #   EVENT OPERATIONS
     # ==========================
@@ -481,31 +524,9 @@ class Database:
         )
 
     # ==========================
-    #   USER PROFILE OPERATIONS - YANG BARU DITAMBAHKAN
+    #   USER PROFILE OPERATIONS
     # ==========================
     
-    def update_user_profile(self, user_id, name, email, status):
-        """Update user profile information"""
-        try:
-            print(f"🔧 DATABASE: Updating profile for user {user_id}")
-            print(f"🔧 DATABASE: name={name}, email={email}, status={status}")
-            
-            result = self.execute_query(
-                "UPDATE users SET username = %s, email = %s, status = %s WHERE id = %s",
-                (name, email, status, user_id)
-            )
-            
-            print(f"🔧 DATABASE: Update result = {result}")
-            print(f"🔧 DATABASE: Result type = {type(result)}")
-            
-            # Return True jika berhasil (result tidak None), False jika gagal
-            return result is not None
-        except Exception as e:
-            print(f"❌ DATABASE Error: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-
     def get_user_tickets(self, user_id):
         """Get all tickets for a user"""
         return self.execute_query(
@@ -528,6 +549,7 @@ class Database:
             (user_id,), 
             fetch=True
         ) or []
+    
 
     def get_user_detailed_stats(self, user_id):
         """Get detailed statistics for a user"""
@@ -548,7 +570,7 @@ class Database:
             fetch_one=True
         ) or {'count': 0}
         
-        # Total spending
+        # Total spending - INI YANG TERPOTONG
         total_spent = self.execute_query(
             "SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE user_id = %s AND payment_status = 'paid'",
             (user_id,), 

@@ -30,7 +30,8 @@ class GuardianTixApp:
         self.app.route("/concert")(self.concert)
         self.app.route("/account")(self.account)
         self.app.route("/payment/<int:payment_id>")(self.payment_page)
-        self.app.route("/success")(self.payment_success)  
+        self.app.route("/success")(self.payment_success)
+        self.app.route("/delete-account", methods=["POST"])(self.delete_account)  # TAMBAH INI
 
         # API Routes
         self.app.route("/checkout", methods=["POST"])(self.checkout)
@@ -47,10 +48,7 @@ class GuardianTixApp:
         self.app.route("/admin/tickets/quick-add", methods=["POST"])(self.add_ticket_quick)
         self.app.route("/admin/mark_paid/<int:payment_id>", methods=["POST"])(self.mark_paid)
 
-        # ==========================
-        #   API ROUTES BARU - TAMBAHKAN INI
-        # ==========================
-        self.app.route("/api/update_profile", methods=["POST"])(self.update_profile)
+        # API Routes untuk user
         self.app.route("/api/user_tickets")(self.api_user_tickets)
         self.app.route("/api/user_stats")(self.api_user_stats)
         self.app.route("/api/cancel_ticket/<int:ticket_id>", methods=["POST"])(self.cancel_ticket)
@@ -167,6 +165,34 @@ class GuardianTixApp:
                          payment_method=payment_method,
                          username=session.get("username", "User"))
 
+    @login_required
+    def delete_account(self):
+        """Hapus akun user yang sedang login"""
+        try:
+            user_id = session['user_id']
+            
+            # Konfirmasi penghapusan
+            if not request.form.get('confirm_delete'):
+                flash("Please confirm account deletion", "error")
+                return redirect(url_for('account'))
+            
+            # Hapus user dari database
+            result = self.db.delete_user(user_id)
+            
+            if result:
+                # Logout user setelah penghapusan
+                session.clear()
+                flash("Your account has been successfully deleted. We're sorry to see you go!", "info")
+                return redirect(url_for('login'))
+            else:
+                flash("Failed to delete account. Please try again.", "error")
+                return redirect(url_for('account'))
+                
+        except Exception as e:
+            print(f"Account deletion error: {str(e)}")
+            flash("An error occurred while deleting your account", "error")
+            return redirect(url_for('account'))
+
     # ==========================
     #   ROUTE HANDLERS - API
     # ==========================
@@ -198,77 +224,6 @@ class GuardianTixApp:
         except Exception as e:
             print(f"❌ Checkout error: {str(e)}")
             return {'success': False, 'error': f'System error: {str(e)}'}, 500
-
-    # ==========================
-    #   API ROUTES BARU - TAMBAHKAN INI
-    # ==========================
-    
-    @login_required
-    def update_profile(self):
-        """Update user profile data"""
-        try:
-            user_id = session['user_id']
-            data = request.get_json()
-            
-            print(f"🎯 DEBUG update_profile called")
-            print(f"🎯 User ID: {user_id}")
-            print(f"🎯 Request data: {data}")
-            
-            # Validasi data wajib
-            if not data.get('name') or not data.get('email'):
-                print("❌ Missing name or email")
-                return jsonify({
-                    'success': False, 
-                    'error': 'Name and email are required'
-                }), 400
-            
-            # Cek jika email sudah dipakai oleh user lain
-            existing_user = self.db.get_user_by_email(data.get('email'))
-            print(f"🎯 Existing user check: {existing_user}")
-            
-            if existing_user and existing_user['id'] != user_id:
-                print("❌ Email already used by another user")
-                return jsonify({
-                    'success': False, 
-                    'error': 'Email already used by another account'
-                }), 400
-            
-            # Update user data in database
-            print("🎯 Calling database update...")
-            result = self.db.update_user_profile(
-                user_id,
-                data.get('name'),
-                data.get('email'),
-                data.get('status', 'Regular Member')
-            )
-            
-            print(f"🎯 Database update result: {result}")
-            
-            if result:
-                # Update session data
-                session['username'] = data.get('name')
-                session['email'] = data.get('email')
-                
-                print("✅ Profile updated successfully")
-                return jsonify({
-                    'success': True, 
-                    'message': 'Profile updated successfully!'
-                })
-            else:
-                print("❌ Database update failed")
-                return jsonify({
-                    'success': False, 
-                    'error': 'Failed to update profile in database'
-                }), 400
-                
-        except Exception as e:
-            print(f"❌ Profile update error: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            return jsonify({
-                'success': False, 
-                'error': f'System error: {str(e)}'
-            }), 500
 
     @login_required
     def api_user_tickets(self):
